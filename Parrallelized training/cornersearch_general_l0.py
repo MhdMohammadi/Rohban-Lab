@@ -473,9 +473,9 @@ if __name__ == '__main__':
 
     lambda_val, n_max, n_iter = None, None, None
 
-    # ref_net = utils.net_loader(args.net_arch, n_channels).to(device)
-    # print(ref_net.state_dict())
-    # normal_train(ref_net, 4)
+    ref_net = utils.net_loader(args.net_arch, n_channels).to(device)
+    print(ref_net.state_dict())
+    normal_train(ref_net, 4)
 
     for l_val in lambda_vals:
         for num_max in num_maxs:
@@ -493,7 +493,7 @@ if __name__ == '__main__':
                                                "l_" + str(lambda_val) + "_N_" + str(n_max) + "_e_" + str(n_iter))
 
                 net = utils.net_loader(args.net_arch, n_channels)
-                # net.load_state_dict(ref_net.state_dict())
+                net.load_state_dict(ref_net.state_dict())
                 net = nn.DataParallel(net)
                 net = net.to(device)
 
