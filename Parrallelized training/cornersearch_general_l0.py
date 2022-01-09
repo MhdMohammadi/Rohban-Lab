@@ -22,6 +22,8 @@ import utils
 
 import math
 
+import matplotlib.pyplot as plt
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 log_info = {"epoch": 0, "batch": 0, "train_adv_acc": 0, "train_clean_acc": 0, "train_loss": 0, "time": 0}
@@ -327,22 +329,28 @@ def normal_acc():
 
 
 def get_accuracy(output, labels):
-    _, predicted = torch.max(outputs.data, 1)
-    total += labels.size(0)
-    correct += (predicted == labels).sum().item()
-    return correct / total
+    _, predicted = torch.max(output.data, 1)
+    total = labels.size(0)
+    correct = (predicted == labels).sum().item()
+    return correct, total
 
 
 def normal_train(model, num_epochs):
     normal_criterion = nn.CrossEntropyLoss().to(device)
     normal_optimizer = torch.optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=5e-4)
     normal_scheduler = torch.optim.lr_scheduler.MultiStepLR(normal_optimizer, milestones=[math.floor(0.5 * num_epochs),
-                                                                            math.floor(0.75 * num_epochs)], gamma=0.1)
+                                                                                          math.floor(
+                                                                                              0.75 * num_epochs)],
+                                                            gamma=0.1)
 
-    losses = []
-    accuracies = []
+    train_losses = []
+    train_accuracies = []
+    test_accuracies = []
     for epoch in range(num_epochs):
-        print(epoch)
+        print('epoch ' + str(epoch) + ' has just started!')
+        correct = 0
+        total = 0
+        temp_losses = []
         for data in trainloader:
             x_nat = data[0].to(device)
             y_nat = data[1].to(device)
@@ -357,16 +365,17 @@ def normal_train(model, num_epochs):
 
             # measure accuracy and record loss
 
-            accuracies.append(get_accuracy(output, y_nat))
-            losses.append(loss.item())
-            print(loss.item())
+            temp_correct, temp_total = get_accuracy(output, y_nat)
+            correct += temp_correct
+            total += temp_total
+            temp_losses.append(loss.item())
             # prec1 = accuracy(output.data, target)[0]
             # losses.update(loss.item(), input.size(0))
             # top1.update(prec1.item(), input.size(0))
 
             # measure elapsed time
-            batch_time.update(time.time() - end)
-            end = time.time()
+            # batch_time.update(time.time() - end)
+            # end = time.time()
 
             # if i % args.print_freq == 0:
             #     print('Epoch: [{0}][{1}/{2}]\t'
@@ -377,6 +386,26 @@ def normal_train(model, num_epochs):
 
             # print(y_nat)
             # return 0
+        train_losses.append(np.mean(temp_losses))
+        train_accuracies.append(correct / total)
+        with torch.no_grad():
+            correct, total = 0, 0
+            for data in testloader:
+                images, labels = data[0].to(device), data[1].to(device)
+                outputs = model(images)
+                temp_correct, temp_total = get_accuracy(outputs, labels)
+                correct += temp_correct
+                total += temp_total
+            test_accuracies.append(correct / total)
+        print('loss : ' + str(train_losses[-1]) + ' - train_accuracy : ' + str(
+            train_accuracies[-1]) + '- test_accuracy : ' + str(test_accuracies[-1]))
+        print()
+
+    # fig, axs = plt.subplots(3, figsize=(12, 12))
+    # axs[0].plot(train_losses)
+    # axs[1].plot(train_accuracies)
+    # axs[2].plot(test_accuracies)
+    # plt.show()
 
 
 if __name__ == '__main__':
@@ -444,61 +473,62 @@ if __name__ == '__main__':
 
     lambda_val, n_max, n_iter = None, None, None
 
-    ref_net = utils.net_loader(args.net_arch, n_channels).to(device)
-    normal_train(ref_net, 10)
+    # ref_net = utils.net_loader(args.net_arch, n_channels).to(device)
+    # print(ref_net.state_dict())
+    # normal_train(ref_net, 4)
 
-    #
-    # for l_val in lambda_vals:
-    #     for num_max in num_maxs:
-    #         for num_example in num_examples:
-    #
-    #             print_time(
-    #                 "execution for (lambda, num_max, num_examples)= (" + str(l_val) + ", " + str(num_max) + ", " + str(
-    #                     num_example) + ")")
-    #
-    #             lambda_val = l_val
-    #             n_max = num_max
-    #             n_iter = num_example
-    #
-    #             train_directory = os.path.join(args.train_directory,
-    #                                            "l_" + str(lambda_val) + "_N_" + str(n_max) + "_e_" + str(n_iter))
-    #
-    #             net = utils.net_loader(args.net_arch, n_channels)
-    #             net = nn.DataParallel(net)
-    #             net = net.to(device)
-    #
-    #             # os.makedirs(train_directory, exist_ok=True)
-    #             os.makedirs(os.path.join(train_directory, "models"), exist_ok=True)
-    #
-    #             # t1 = threading.Thread(target=show_gpu_usage)
-    #             # t1.start()
-    #
-    #             init_epoch, init_batch = 0, 0
-    #
-    #             if args.resume:
-    #                 if os.path.exists(os.path.join(train_directory, "train_info")):
-    #                     file_ = open(os.path.join(train_directory, "train_info"), 'rb')
-    #                     temp = pickle.load(file_)
-    #                     file_.close()
-    #
-    #                     init_epoch = temp[0] + 1
-    #
-    #                     # Uncommnet if you saved models after each batch.
-    #                     # init_epoch, init_batch = temp[0], temp[1]+1
-    #
-    #                     path = os.path.join(train_directory, "models/e_" + str(temp[0]) + "_b_" + str(temp[1]) + ".pth")
-    #                     net.load_state_dict(torch.load(path))
-    #             else:
-    #                 with open(os.path.join(train_directory, "train_log.csv"), 'w') as csvfile:
-    #                     writer = csv.writer(csvfile)
-    #                     writer.writerow(list(log_info.keys()))
-    #
-    #             if args.load_model != "":
-    #                 net.load_state_dict(torch.load(args.load_model))
-    #
-    #             bb = BlackBox_distributer()
-    #
-    #             optimizer = utils.optimizer_loader(net.parameters(), args.optimizer, args.lr)
-    #             criterion = nn.CrossEntropyLoss()
-    #
-    #             train(net, args.epochs, init_epoch, init_batch, train_directory)
+    for l_val in lambda_vals:
+        for num_max in num_maxs:
+            for num_example in num_examples:
+
+                print_time(
+                    "execution for (lambda, num_max, num_examples)= (" + str(l_val) + ", " + str(num_max) + ", " + str(
+                        num_example) + ")")
+
+                lambda_val = l_val
+                n_max = num_max
+                n_iter = num_example
+
+                train_directory = os.path.join(args.train_directory,
+                                               "l_" + str(lambda_val) + "_N_" + str(n_max) + "_e_" + str(n_iter))
+
+                net = utils.net_loader(args.net_arch, n_channels)
+                # net.load_state_dict(ref_net.state_dict())
+                net = nn.DataParallel(net)
+                net = net.to(device)
+
+                # os.makedirs(train_directory, exist_ok=True)
+                os.makedirs(os.path.join(train_directory, "models"), exist_ok=True)
+
+                # t1 = threading.Thread(target=show_gpu_usage)
+                # t1.start()
+
+                init_epoch, init_batch = 0, 0
+
+                if args.resume:
+                    if os.path.exists(os.path.join(train_directory, "train_info")):
+                        file_ = open(os.path.join(train_directory, "train_info"), 'rb')
+                        temp = pickle.load(file_)
+                        file_.close()
+
+                        init_epoch = temp[0] + 1
+
+                        # Uncommnet if you saved models after each batch.
+                        # init_epoch, init_batch = temp[0], temp[1]+1
+
+                        path = os.path.join(train_directory, "models/e_" + str(temp[0]) + "_b_" + str(temp[1]) + ".pth")
+                        net.load_state_dict(torch.load(path))
+                else:
+                    with open(os.path.join(train_directory, "train_log.csv"), 'w') as csvfile:
+                        writer = csv.writer(csvfile)
+                        writer.writerow(list(log_info.keys()))
+
+                if args.load_model != "":
+                    net.load_state_dict(torch.load(args.load_model))
+
+                bb = BlackBox_distributer()
+
+                optimizer = utils.optimizer_loader(net.parameters(), args.optimizer, args.lr)
+                criterion = nn.CrossEntropyLoss()
+
+                train(net, args.epochs, init_epoch, init_batch, train_directory)
