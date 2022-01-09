@@ -1,0 +1,4 @@
+models
+mnist*
+data*
+__pycache_*
