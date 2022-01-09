@@ -386,6 +386,8 @@ def normal_train(model, num_epochs):
 
             # print(y_nat)
             # return 0
+        normal_scheduler.step()
+
         train_losses.append(np.mean(temp_losses))
         train_accuracies.append(correct / total)
         with torch.no_grad():
