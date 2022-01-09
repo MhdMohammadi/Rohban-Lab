@@ -474,8 +474,8 @@ if __name__ == '__main__':
     lambda_val, n_max, n_iter = None, None, None
 
     ref_net = utils.net_loader(args.net_arch, n_channels).to(device)
-    print(ref_net.state_dict())
-    normal_train(ref_net, 4)
+    # print(ref_net.state_dict())
+    normal_train(ref_net, 100)
 
     for l_val in lambda_vals:
         for num_max in num_maxs:
