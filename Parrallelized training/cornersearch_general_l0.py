@@ -351,8 +351,10 @@ def pre_train(model, num_epochs, path):
         total = 0
         print('are you kidding me ?')
         temp_losses = []
+        tmp_ind = 0
         for data in trainloader:
-            print('hi there')
+            print(tmp_ind)
+            tmp_ind += 1
             x_nat = data[0].to(device)
             y_nat = data[1].to(device)
             output = model(x_nat)
@@ -489,10 +491,10 @@ if __name__ == '__main__':
 
     if args.pre_train == 'OFF':
         ref_net = utils.net_loader(args.net_arch, n_channels).to(device)
-        ref_net.load_state_dict(torch.load(pre_train_dir + '\model.pt'))
+        ref_net.load_state_dict(torch.load(pre_train_dir + '\model.pt', map_location=torch.device('cpu')))
     else:
         ref_net = utils.net_loader(args.net_arch, n_channels).to(device)
-        pre_train(ref_net, 1, pre_train_dir)
+        pre_train(ref_net, 2, pre_train_dir)
 
 
     lambda_val, n_max, n_iter = None, None, None
