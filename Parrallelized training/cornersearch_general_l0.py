@@ -249,7 +249,6 @@ def train(net, num_epochs, init_epoch, init_batch, train_dir):
         running_loss = 0.0
 
         for i, data in enumerate(trainloader, 0):
-
             if i < init_batch:
                 continue
             print_time("Batch " + str(i) + " started.")
@@ -350,8 +349,10 @@ def pre_train(model, num_epochs, path):
         print('epoch ' + str(epoch) + ' has just started!')
         correct = 0
         total = 0
+        print('are you kidding me ?')
         temp_losses = []
         for data in trainloader:
+            print('hi there')
             x_nat = data[0].to(device)
             y_nat = data[1].to(device)
             output = model(x_nat)
@@ -402,7 +403,7 @@ def pre_train(model, num_epochs, path):
         print('loss : ' + str(train_losses[-1]) + ' - train_accuracy : ' + str(
             train_accuracies[-1]) + '- test_accuracy : ' + str(test_accuracies[-1]))
         print()
-        torch.save(model.state_dict(), path + '.\pre_trained_model.pt')
+        torch.save(model.state_dict(), path + '\model.pt')
 
     # fig, axs = plt.subplots(3, figsize=(12, 12))
     # axs[0].plot(train_losses)
@@ -480,7 +481,7 @@ if __name__ == '__main__':
     # os.makedirs(args.train_directory, exist_ok=True)
 
 
-    pre_train_dir = '.\pre_trained_model'
+    pre_train_dir = '.\pre_trained_models'
     try:
         os.mkdir(pre_train_dir)
     except:
@@ -488,7 +489,7 @@ if __name__ == '__main__':
 
     if args.pre_train == 'OFF':
         ref_net = utils.net_loader(args.net_arch, n_channels).to(device)
-        ref.net.load_state_dict(torch.load(pre_train_dir + '.\pre_trained_model.pt'))
+        ref_net.load_state_dict(torch.load(pre_train_dir + '\model.pt'))
     else:
         ref_net = utils.net_loader(args.net_arch, n_channels).to(device)
         pre_train(ref_net, 1, pre_train_dir)
