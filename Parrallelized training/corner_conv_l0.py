@@ -48,7 +48,6 @@ def onepixel_perturbation_logits(orig_x):
 
     with torch.no_grad():
 
-
         dims = orig_x.shape
         pic_size = dims[1] * dims[2]
         n_perturbed = pic_size * n_corners
@@ -241,6 +240,12 @@ def train(net, num_epochs, init_epoch, init_batch, train_dir):
 
     scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[6,
                                                                             9], gamma=0.1)
+
+    # adv_dir = './adverserial_data'
+    # try:
+    #     os.mkdir(pre_train_dir)
+    # except:
+    #     pass
 
     for epoch in range(num_epochs):
         net.train()
@@ -481,7 +486,6 @@ if __name__ == '__main__':
 
     # os.makedirs(args.train_directory, exist_ok=True)
 
-
     # pre_train_dir = './pre_trained_models'
     # try:
     #     os.mkdir(pre_train_dir)
@@ -497,8 +501,6 @@ if __name__ == '__main__':
     #
 
     lambda_val, n_max, n_iter = None, None, None
-
-
 
     for l_val in lambda_vals:
         for num_max in num_maxs:
