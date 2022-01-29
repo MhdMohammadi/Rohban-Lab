@@ -405,7 +405,7 @@ def pre_train(model, num_epochs, path):
         print('loss : ' + str(train_losses[-1]) + ' - train_accuracy : ' + str(
             train_accuracies[-1]) + '- test_accuracy : ' + str(test_accuracies[-1]))
         print()
-        torch.save(model.state_dict(), path + '\model.pt')
+        torch.save(model.state_dict(), path + '/model.pt')
 
     # fig, axs = plt.subplots(3, figsize=(12, 12))
     # axs[0].plot(train_losses)
@@ -483,7 +483,7 @@ if __name__ == '__main__':
     # os.makedirs(args.train_directory, exist_ok=True)
 
 
-    pre_train_dir = '.\pre_trained_models'
+    pre_train_dir = './pre_trained_models'
     try:
         os.mkdir(pre_train_dir)
     except:
@@ -491,7 +491,7 @@ if __name__ == '__main__':
 
     if args.pre_train == 'OFF':
         ref_net = utils.net_loader(args.net_arch, n_channels).to(device)
-        ref_net.load_state_dict(torch.load(pre_train_dir + '\model.pt', map_location=torch.device('cpu')))
+        ref_net.load_state_dict(torch.load(pre_train_dir + '/model.pt', map_location=torch.device('cpu')))
     else:
         ref_net = utils.net_loader(args.net_arch, n_channels).to(device)
         pre_train(ref_net, 2, pre_train_dir)
