@@ -10,8 +10,8 @@ class Conv2Net(nn.Module):
         self.conv2 = nn.Conv2d(32, 64, (5, 5), stride=1)
 
         # Mohammad: I've changed this part
-        # self.fc1 = nn.Linear(1600, 1024)
-        self.fc1 = nn.Linear(1024, 1024)
+        self.fc1 = nn.Linear(1600, 1024)
+        # self.fc1 = nn.Linear(1024, 1024)
         
         self.fc2 = nn.Linear(1024, 10)
 
@@ -21,9 +21,8 @@ class Conv2Net(nn.Module):
         x = self.pool(F.relu(self.conv2(x)))
 
         # Mohammad: I've changed this part
-        x = x.reshape(-1, 1024)
-        # x = x.reshape(-1, 1600)
-        
+        # x = x.reshape(-1, 1024)
+        x = x.reshape(-1, 1600)
         x = F.relu(self.fc1(x))
         x = self.fc2(x)
         return x
