@@ -499,60 +499,60 @@ if __name__ == '__main__':
 
     lambda_val, n_max, n_iter = None, None, None
 
-    #
-    #
-    # for l_val in lambda_vals:
-    #     for num_max in num_maxs:
-    #         for num_example in num_examples:
-    #
-    #             print_time(
-    #                 "execution for (lambda, num_max, num_examples)= (" + str(l_val) + ", " + str(num_max) + ", " + str(
-    #                     num_example) + ")")
-    #
-    #             lambda_val = l_val
-    #             n_max = num_max
-    #             n_iter = num_example
-    #
-    #             train_directory = os.path.join(args.train_directory,
-    #                                            "l_" + str(lambda_val) + "_N_" + str(n_max) + "_e_" + str(n_iter))
-    #
-    #             net = utils.net_loader(args.net_arch, n_channels)
-    #             net.load_state_dict(ref_net.state_dict())
-    #             net = nn.DataParallel(net)
-    #             net = net.to(device)
-    #
-    #             # os.makedirs(train_directory, exist_ok=True)
-    #             os.makedirs(os.path.join(train_directory, "models"), exist_ok=True)
-    #
-    #             # t1 = threading.Thread(target=show_gpu_usage)
-    #             # t1.start()
-    #
-    #             init_epoch, init_batch = 0, 0
-    #
-    #             if args.resume:
-    #                 if os.path.exists(os.path.join(train_directory, "train_info")):
-    #                     file_ = open(os.path.join(train_directory, "train_info"), 'rb')
-    #                     temp = pickle.load(file_)
-    #                     file_.close()
-    #
-    #                     init_epoch = temp[0] + 1
-    #
-    #                     # Uncommnet if you saved models after each batch.
-    #                     # init_epoch, init_batch = temp[0], temp[1]+1
-    #
-    #                     path = os.path.join(train_directory, "models/e_" + str(temp[0]) + "_b_" + str(temp[1]) + ".pth")
-    #                     net.load_state_dict(torch.load(path))
-    #             else:
-    #                 with open(os.path.join(train_directory, "train_log.csv"), 'w') as csvfile:
-    #                     writer = csv.writer(csvfile)
-    #                     writer.writerow(list(log_info.keys()))
-    #
-    #             if args.load_model != "":
-    #                 net.load_state_dict(torch.load(args.load_model))
-    #
-    #             bb = BlackBox_distributer()
-    #
-    #             optimizer = utils.optimizer_loader(net.parameters(), args.optimizer, args.lr)
-    #             criterion = nn.CrossEntropyLoss()
-    #
-    #             train(net, args.epochs, init_epoch, init_batch, train_directory)
+
+
+    for l_val in lambda_vals:
+        for num_max in num_maxs:
+            for num_example in num_examples:
+
+                print_time(
+                    "execution for (lambda, num_max, num_examples)= (" + str(l_val) + ", " + str(num_max) + ", " + str(
+                        num_example) + ")")
+
+                lambda_val = l_val
+                n_max = num_max
+                n_iter = num_example
+
+                train_directory = os.path.join(args.train_directory,
+                                               "l_" + str(lambda_val) + "_N_" + str(n_max) + "_e_" + str(n_iter))
+
+                net = utils.net_loader(args.net_arch, n_channels)
+                net.load_state_dict(ref_net.state_dict())
+                net = nn.DataParallel(net)
+                net = net.to(device)
+
+                # os.makedirs(train_directory, exist_ok=True)
+                os.makedirs(os.path.join(train_directory, "models"), exist_ok=True)
+
+                # t1 = threading.Thread(target=show_gpu_usage)
+                # t1.start()
+
+                init_epoch, init_batch = 0, 0
+
+                if args.resume:
+                    if os.path.exists(os.path.join(train_directory, "train_info")):
+                        file_ = open(os.path.join(train_directory, "train_info"), 'rb')
+                        temp = pickle.load(file_)
+                        file_.close()
+
+                        init_epoch = temp[0] + 1
+
+                        # Uncommnet if you saved models after each batch.
+                        # init_epoch, init_batch = temp[0], temp[1]+1
+
+                        path = os.path.join(train_directory, "models/e_" + str(temp[0]) + "_b_" + str(temp[1]) + ".pth")
+                        net.load_state_dict(torch.load(path))
+                else:
+                    with open(os.path.join(train_directory, "train_log.csv"), 'w') as csvfile:
+                        writer = csv.writer(csvfile)
+                        writer.writerow(list(log_info.keys()))
+
+                if args.load_model != "":
+                    net.load_state_dict(torch.load(args.load_model))
+
+                bb = BlackBox_distributer()
+
+                optimizer = utils.optimizer_loader(net.parameters(), args.optimizer, args.lr)
+                criterion = nn.CrossEntropyLoss()
+
+                train(net, args.epochs, init_epoch, init_batch, train_directory)
