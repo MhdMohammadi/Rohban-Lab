@@ -240,8 +240,8 @@ def attack(x_nat, y_nat):
 def train(net, num_epochs, init_epoch, init_batch, train_dir):
     global criterion
 
-    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[math.floor(0.5 * num_epochs),
-                                                                            math.floor(0.75 * num_epochs)], gamma=0.1)
+    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[6,
+                                                                            9], gamma=0.1)
 
     for epoch in range(num_epochs):
         net.train()
