@@ -149,10 +149,7 @@ def ranker(logit_2, batch_y):
 
     # Not so efficient
     ''' sorted = torch.argsort(logit_3, axis=1)
-
     ind  = torch.zeros(logit_3.shape).to(device)
-
-
     base_dist = torch.zeros(ind.shape[1]).to(device).float()
     base_dist[:n_max] = torch.tensor([((2*n_max - 2*i + 1)/n_max**2) for i in range(1, n_max+1)])'''
 
