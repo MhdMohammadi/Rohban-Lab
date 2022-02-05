@@ -491,7 +491,7 @@ if __name__ == '__main__':
         ref_net.load_state_dict(torch.load(pre_train_dir + '/model.pt', map_location=torch.device('cpu')))
     else:
         ref_net = utils.net_loader(args.net_arch, n_channels).to(device)
-        pre_train(ref_net, 2, pre_train_dir)
+        pre_train(ref_net, 2, pre_train_dir)k
 
 
     lambda_val, n_max, n_iter = None, None, None
