@@ -237,8 +237,7 @@ def attack(x_nat, y_nat):
 def train(net, num_epochs, init_epoch, init_batch, train_dir):
     global criterion
 
-    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[6,
-                                                                            9], gamma=0.1)
+    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[6, 9], gamma=0.1)
 
     for epoch in range(num_epochs):
         net.train()
@@ -479,7 +478,6 @@ if __name__ == '__main__':
 
     # os.makedirs(args.train_directory, exist_ok=True)
 
-
     pre_train_dir = './pre_trained_models'
     try:
         os.mkdir(pre_train_dir)
@@ -488,15 +486,12 @@ if __name__ == '__main__':
 
     if args.pre_train == 'OFF':
         ref_net = utils.net_loader(args.net_arch, n_channels).to(device)
-        ref_net.load_state_dict(torch.load(pre_train_dir + '/model.pt', map_location=torch.device('cpu')))
+        ref_net.load_state_dict(torch.load(pre_train_dir + '/pretrained88.pth'))
     else:
         ref_net = utils.net_loader(args.net_arch, n_channels).to(device)
-        pre_train(ref_net, 2, pre_train_dir)k
-
+        pre_train(ref_net, 2, pre_train_dir)
 
     lambda_val, n_max, n_iter = None, None, None
-
-
 
     for l_val in lambda_vals:
         for num_max in num_maxs:

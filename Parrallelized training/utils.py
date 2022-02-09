@@ -11,7 +11,7 @@ import torchvision.models as torch_models
 
 import models
 import resnet
-
+import resnet2
 
 #TODO: Add cifar & HMNIST
 def dataset_loader(dataset, batch_size=512, num_workers=8):
@@ -68,8 +68,9 @@ def net_loader(net_arch, channels=1):
         return models.Conv2Net(channels)
 
     elif net_arch == 'ResNet18':
+        return resnet2.ResNet18()
         # return resnet.ResNet18()
-        return torch_models.resnet18(num_classes=10)
+        # return torch_models.resnet18(num_classes=10)
 
     elif net_arch == 'ResNet50':
         return resnet.ResNet50()
