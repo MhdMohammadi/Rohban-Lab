@@ -39,7 +39,7 @@ transform_test = transforms.Compose([
 ])
 testset = torchvision.datasets.CIFAR10(root='../data', train=False, download=True, transform=transform_test)
 
-batch_size = 512
+batch_size = 4
 testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=8)
 
 # testloader = torch.utils.data.DataLoader(testset, batch_size=512,
@@ -221,6 +221,7 @@ if __name__ == '__main__':
         # net = nn.DataParallel(net)
         net.load_state_dict(torch.load(path))
         # print(normal_acc())
+        batch_num = 0
         for data in testloader:
             # print(len(data))
             # par_dir = os.path.dirname(os.path.abspath(path))
@@ -240,3 +241,4 @@ if __name__ == '__main__':
                 writer = csv.writer(csvfile)
                 writer.writerow(["batch_num", "correct", "total"])
                 writer.writerow([batch_num, correct, total])
+            batch_num += 1
