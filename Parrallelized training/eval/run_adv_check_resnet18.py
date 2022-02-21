@@ -234,12 +234,12 @@ if __name__ == '__main__':
             # labels = torch.tensor([testset[i][1] for i in range(b, e)])
             images, labels = data[0], data[1]
 
-            # correct, total = adv_batch_acc(images, labels, attack_args)
-            correct, total = 1, 1
+            correct, total = adv_batch_acc(images, labels, attack_args)
+            # correct, total = 1, 1
             file_name = args.attack + ".csv"
-            print(file_name)
             with open(file_name, 'a') as csvfile:
                 writer = csv.writer(csvfile)
-                writer.writerow(["batch_num", "correct", "total"])
+                if batch_num == 0:
+                  writer.writerow(["batch_num", "correct", "total"])
                 writer.writerow([batch_num, correct, total])
             batch_num += 1
