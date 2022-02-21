@@ -16,7 +16,7 @@ def get_logits(model, x_nat):
 
 
 def save_adversarial(x, y, output):
-    print(x.shape)
+    print(x.shapeو 'what the hell is happening ?')
 
 
 def get_predictions(model, x_nat, y_nat):
