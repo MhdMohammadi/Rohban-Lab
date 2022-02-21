@@ -4,7 +4,8 @@ import torchvision.datasets as datasets
 import torch.utils.data as data
 import torchvision.transforms as transforms
 import numpy as np
-
+import os
+import matplotlib.pyplot as plt
 
 def get_logits(model, x_nat):
     x = torch.from_numpy(x_nat).permute(0, 3, 1, 2).float()
@@ -14,6 +15,18 @@ def get_logits(model, x_nat):
 
     return output.cpu().numpy()
 
+
+def save_adversarial_data(adv, index):
+    pass
+    adv_dir = os.getcwd() + '/../Adversarials'
+
+    try:
+        os.mkdir(adv_dir)
+    except:
+        pass
+
+    plt.imshow(adv)
+    plt.savefig(adv_dir+f'/img{index}.png')
 
 def get_predictions(model, x_nat, y_nat):
     x = torch.from_numpy(x_nat).permute(0, 3, 1, 2).float()

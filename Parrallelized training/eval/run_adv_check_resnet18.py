@@ -39,7 +39,7 @@ transform_test = transforms.Compose([
 ])
 testset = torchvision.datasets.CIFAR10(root='../data', train=False, download=True, transform=transform_test)
 
-batch_size = 4
+batch_size = 2
 testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=8)
 
 # testloader = torch.utils.data.DataLoader(testset, batch_size=512,
@@ -234,10 +234,11 @@ if __name__ == '__main__':
             # labels = torch.tensor([testset[i][1] for i in range(b, e)])
             images, labels = data[0], data[1]
 
-            correct, total = adv_batch_acc(images, labels, attack_args)
-
-            file_name = args.attack + "_batch_" + str(batch_num) + ".csv"
-            with open(os.path.join(par_dir, file_name), 'a') as csvfile:
+            # correct, total = adv_batch_acc(images, labels, attack_args)
+            correct, total = 1, 1
+            file_name = args.attack + ".csv"
+            print(file_name)
+            with open(file_name, 'a') as csvfile:
                 writer = csv.writer(csvfile)
                 writer.writerow(["batch_num", "correct", "total"])
                 writer.writerow([batch_num, correct, total])
