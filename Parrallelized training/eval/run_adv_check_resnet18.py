@@ -7,6 +7,8 @@ import torchvision.transforms as transforms
 import torch.nn as nn
 import torch.nn.functional as F
 
+import torchvision.models as torch_models
+
 # import torch.optim as optim
 # import GPUtil
 # import threading
@@ -31,8 +33,15 @@ transform = transforms.Compose([transforms.ToTensor()])
 # trainloader = torch.utils.data.DataLoader(trainset, batch_size=512,
 # shuffle=True, num_workers=8)
 
-testset = torchvision.datasets.MNIST(root='../data', train=False,
-                                     download=True, transform=transform)
+transform_test = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+])
+testset = torchvision.datasets.CIFAR10(root='../data', train=False, download=True, transform=transform_test)
+
+batch_size = 512
+testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=8)
+
 # testloader = torch.utils.data.DataLoader(testset, batch_size=512,
 #                                          shuffle=False, num_workers=8)
 
@@ -44,7 +53,7 @@ def adv_batch_acc(images, labels, args):
     correct = 0
 
     images = images.permute(0, 2, 3, 1)
-
+    print(images.shape)
     total = labels.size(0)
 
     if args['attack'] == 'CS':
@@ -96,10 +105,32 @@ def adv_batch_acc(images, labels, args):
 
     return correct, total
 
+def normal_acc():
+    correct = 0
+    total = 0
+    with torch.no_grad():
+        for data in testloader:
+            images, labels = data[0].to(device), data[1].to(device)
+            images = images.permute(0, 2, 3, 1)
+
+            # Mohammad: I've changed here
+            # Remove permute
+            outputs = net(images.permute(0, 3, 1, 2))
+            # outputs = net(images)
+
+            _, predicted = torch.max(outputs.data, 1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+
+    print("normal acc:\t", 100 * correct / total)
+
+    return 100 * correct / total
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Define hyperparameters.')
     # parser.add_argument('--kappa', type=float, default=0.8)
-    parser.add_argument('--k', type=int, default=15)
+    parser.add_argument('--k', type=int, default=5)
     parser.add_argument('--n_examples', type=int, default=1000)
     parser.add_argument('--n_max', type=int, default=24)
     # parser.add_argument('--load_model', type=str, default="")
@@ -123,6 +154,9 @@ if __name__ == '__main__':
     #     	'size_incr': 5}
 
     net = resnet2.ResNet18()
+    # net = torch_models.resnet18(num_classes=10)
+
+    net = nn.DataParallel(net)
     net = net.to(device)
 
     if args.attack == 'CS':
@@ -184,18 +218,20 @@ if __name__ == '__main__':
     batches = [0, 1, 2]
 
     for path in model_paths:
-        for batch_num in batches:
-            net.load_state_dict(torch.load(path))
-            net = nn.DataParallel(net)
+        # net = nn.DataParallel(net)
+        net.load_state_dict(torch.load(path))
+        # print(normal_acc())
+        for data in testloader:
+            # print(len(data))
+            # par_dir = os.path.dirname(os.path.abspath(path))
+            # par_dir = os.path.join(par_dir, "eval")
+            # if not os.path.exists(par_dir):
+            #     os.makedirs(par_dir)
 
-            par_dir = os.path.dirname(os.path.abspath(path))
-            par_dir = os.path.join(par_dir, "eval")
-            if not os.path.exists(par_dir):
-                os.makedirs(par_dir)
-
-            b, e = batch_num * args.batch_size, min(len(testset), (batch_num + 1) * args.batch_size)
-            images = torch.stack([testset[i][0] for i in range(b, e)])
-            labels = torch.tensor([testset[i][1] for i in range(b, e)])
+            # b, e = batch_num * args.batch_size, min(len(testset), (batch_num + 1) * args.batch_size)
+            # images = torch.stack([testset[i][0] for i in range(b, e)])
+            # labels = torch.tensor([testset[i][1] for i in range(b, e)])
+            images, labels = data[0], data[1]
 
             correct, total = adv_batch_acc(images, labels, attack_args)
 
