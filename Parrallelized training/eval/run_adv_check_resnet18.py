@@ -18,13 +18,9 @@ import os
 
 import cornersearch_attacks_pt
 import pgd_attacks_pt
-from sparsefool import sparsefool
+# from sparsefool import sparsefool
 import foolbox
 from foolbox.models import PyTorchModel
-import sys
-sys.path.append('/../')
-print(sys.path)
-from resnet import ResNet18
 
 import resnet2
 
@@ -184,7 +180,7 @@ if __name__ == '__main__':
          'num_examples': 20}
     ]
 
-    model_paths = ["/../trained_pgd.pth"]
+    model_paths = ["../pre_trained_models/trained_pgd.pth"]
     batches = [0, 1, 2]
 
     for path in model_paths:
