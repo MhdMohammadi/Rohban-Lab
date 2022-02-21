@@ -15,16 +15,11 @@ def get_logits(model, x_nat):
     return output.cpu().numpy()
 
 
-def save_adversarial(x, y, output):
-    print(x.shapeو 'what the hell is happening ?')
-
-
 def get_predictions(model, x_nat, y_nat):
     x = torch.from_numpy(x_nat).permute(0, 3, 1, 2).float()
     y = torch.from_numpy(y_nat)
     with torch.no_grad():
         output = model(x.cuda())
-        save_adversarial(x, y, output.cpu().max(dim=-1)[1])
     return (output.cpu().max(dim=-1)[1] == y).numpy()
 
 
