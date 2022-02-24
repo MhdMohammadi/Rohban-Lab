@@ -75,7 +75,7 @@ def onepixel_perturbation_logits(orig_x):
 
         logits = torch.zeros(dims[0], n_perturbed, n_classes).to(device)
 
-        orig_x_inv = inverse_transform(orig_x)
+        # orig_x_inv = inverse_transform(orig_x)
 
         for i in range(n_corners):
             if orig_x.shape[-1] == 1:
@@ -85,9 +85,10 @@ def onepixel_perturbation_logits(orig_x):
 
             for j in range(dims[1]):
                 for q in range(dims[2]):
-                    perturbed = torch.clone(orig_x_inv)
+                    perturbed = torch.clone(orig_x)
+                    # perturbed = torch.clone(orig_x_inv)
                     perturbed[:, j, q] = pixel_val
-                    perturbed = transform(perturbed)
+                    # perturbed = transform(perturbed)
 
                     pic_num = pic_size * i + j * dims[1] + q
 

@@ -2,7 +2,7 @@ import numpy as np
 import torch
 
 import torchvision
-import torchvision.transforms as transforms     
+import torchvision.transforms as transforms
 
 import torch.nn as nn
 import torch.nn.functional as F
@@ -13,9 +13,9 @@ import models
 import resnet
 import resnet2
 
-#TODO: Add cifar & HMNIST
-def dataset_loader(dataset, batch_size=512, num_workers=8):
 
+# TODO: Add cifar & HMNIST
+def dataset_loader(dataset, batch_size=512, num_workers=8):
     if dataset == 'MNIST':
 
         # if data == 'mnist':
@@ -29,7 +29,8 @@ def dataset_loader(dataset, batch_size=512, num_workers=8):
         trainset = torchvision.datasets.MNIST(root='./data', train=True, download=True, transform=transform)
         testset = torchvision.datasets.MNIST(root='./data', train=False, download=True, transform=transform)
 
-        trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
+        trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True,
+                                                  num_workers=num_workers)
         testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
 
         n_classes = 10
@@ -40,27 +41,28 @@ def dataset_loader(dataset, batch_size=512, num_workers=8):
 
         transform_train = transforms.Compose([
             transforms.RandomCrop(32, padding=4),
-            transforms.RandomHorizontalFlip(),
+            # transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
-            transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+            torchvision.transforms.RandomHorizontalFlip(p=0.5),
+            torchvision.transforms.RandomVerticalFlip(p=0.5)
+            # transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
         ])
 
         transform_test = transforms.Compose([
             transforms.ToTensor(),
-            transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+            # transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
         ])
 
         trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform_train)
         testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform_test)
-        
+
         testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
-        trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
+        trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True,
+                                                  num_workers=num_workers)
 
         n_classes = 10
 
-
     return trainloader, testloader, n_classes
-
 
 
 def net_loader(net_arch, channels=1):
@@ -79,9 +81,8 @@ def net_loader(net_arch, channels=1):
         print("No such model exists.")
 
 
-
 def optimizer_loader(params, name, lr):
-    opt=None
+    opt = None
 
     if name == 'adam':
         opt = optim.Adam(params, lr=lr)
