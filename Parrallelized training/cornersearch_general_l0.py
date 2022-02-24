@@ -40,6 +40,27 @@ def print_time(message):
     print(message, current_time)
 
 
+def transform(orig_x):
+    orig_x = orig_x.permute((0, 3, 1, 2))
+
+    Trans = transforms.Compose([
+        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+    ])
+
+    return Trans(orig_x).permute(0, 2, 3, 1)
+
+
+def inverse_transform(orig_x):
+    orig_x = orig_x.permute((0, 3, 1, 2))
+
+    invTrans = transforms.Compose([
+        transforms.Normalize(mean=[0., 0., 0.], std=[1 / 0.2023, 1 / 0.1994, 1 / 0.2010]),
+        transforms.Normalize(mean=[-0.4914, -0.4822, -0.4465], std=[1., 1., 1.]),
+    ])
+
+    return invTrans(orig_x).permute(0, 2, 3, 1)
+
+
 def onepixel_perturbation_logits(orig_x):
     ''' returns logits of all possible perturbations of the images orig_x
         for each image, first comes all zeros and then all ones, so on'''
@@ -54,6 +75,8 @@ def onepixel_perturbation_logits(orig_x):
 
         logits = torch.zeros(dims[0], n_perturbed, n_classes).to(device)
 
+        orig_x_inv = inverse_transform(orig_x)
+
         for i in range(n_corners):
             if orig_x.shape[-1] == 1:
                 pixel_val = int(i)
@@ -62,8 +85,10 @@ def onepixel_perturbation_logits(orig_x):
 
             for j in range(dims[1]):
                 for q in range(dims[2]):
-                    perturbed = torch.clone(orig_x)
+                    perturbed = torch.clone(orig_x_inv)
                     perturbed[:, j, q] = pixel_val
+                    perturbed = transform(perturbed)
+
                     pic_num = pic_size * i + j * dims[1] + q
 
                     # Mohammad: I've changed here
@@ -478,18 +503,18 @@ if __name__ == '__main__':
 
     # os.makedirs(args.train_directory, exist_ok=True)
 
-    pre_train_dir = './pre_trained_models'
-    try:
-        os.mkdir(pre_train_dir)
-    except:
-        pass
+    # pre_train_dir = './pre_trained_models'
+    # try:
+    #     os.mkdir(pre_train_dir)
+    # except:
+    #     pass
 
-    if args.pre_train == 'OFF':
-        ref_net = utils.net_loader(args.net_arch, n_channels).to(device)
-        ref_net.load_state_dict(torch.load(pre_train_dir + '/pretrained88.pth'))
-    else:
-        ref_net = utils.net_loader(args.net_arch, n_channels).to(device)
-        pre_train(ref_net, 2, pre_train_dir)
+    # if args.pre_train == 'OFF':
+    #     ref_net = utils.net_loader(args.net_arch, n_channels).to(device)
+    #     ref_net.load_state_dict(torch.load(pre_train_dir + '/pretrained88.pth'))
+    # else:
+    #     ref_net = utils.net_loader(args.net_arch, n_channels).to(device)
+    #     pre_train(ref_net, 2, pre_train_dir)
 
     lambda_val, n_max, n_iter = None, None, None
 
@@ -506,10 +531,11 @@ if __name__ == '__main__':
                 n_iter = num_example
 
                 train_directory = os.path.join(args.train_directory,
-                                               "l_" + str(lambda_val) + "_N_" + str(n_max) + "_e_" + str(n_iter) + "PGD")
+                                               "l_" + str(lambda_val) + "_N_" + str(n_max) + "_e_" + str(
+                                                   n_iter) + "PGD")
 
                 net = utils.net_loader(args.net_arch, n_channels)
-                net.load_state_dict(ref_net.state_dict())
+                # net.load_state_dict(ref_net.state_dict())
                 net = nn.DataParallel(net)
                 net = net.to(device)
 
