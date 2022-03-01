@@ -20,7 +20,7 @@ import os
 
 import cornersearch_attacks_pt
 import pgd_attacks_pt
-# from sparsefool import sparsefool
+from sparsefool import sparsefool
 import foolbox
 from foolbox.models import PyTorchModel
 
@@ -52,17 +52,17 @@ def adv_batch_acc(images, labels, args):
     net.eval()
     correct = 0
 
-    images = images.permute(0, 2, 3, 1)
-    print(images.shape)
     total = labels.size(0)
 
     if args['attack'] == 'CS':
+        images = images.permute(0, 2, 3, 1)
         with torch.no_grad():
             images, labels = images.numpy(), labels.numpy()
             attack = cornersearch_attacks_pt.CSattack(net, args)
             correct = attack.perturb(images, labels)
 
     elif args['attack'] == 'PGD':
+        images = images.permute(0, 2, 3, 1)
         with torch.no_grad():
             images, labels = images.numpy(), labels.numpy()
             attack = pgd_attacks_pt.PGDattack(net, args)
@@ -71,8 +71,8 @@ def adv_batch_acc(images, labels, args):
     elif args['attack'] == 'SF':
         images, labels = images.to(device), labels.to(device)
         for i in range(images.shape[0]):
+            print(i)
             im = images[i:i + 1]
-
             lb = torch.zeros(images[0:1].shape, device=device)
             ub = torch.ones(images[0:1].shape, device=device)
 

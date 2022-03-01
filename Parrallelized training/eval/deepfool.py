@@ -1,12 +1,23 @@
 import numpy as np
 import torch
 import copy
-from torch.autograd.gradcheck import zero_gradients
+# from torch.autograd.gradcheck import zero_gradients
 from torch.autograd import Variable
+import collections
+
+
+# Mohammad: zero_gradients doesn't exist anymore, I found an alternative code
+def zero_gradients(x):
+    if isinstance(x, torch.Tensor):
+        if x.grad is not None:
+            x.grad.detach_()
+            x.grad.zero_()
+    elif isinstance(x, collections.abc.Iterable):
+        for elem in x:
+            zero_gradients(elem)
 
 
 def deepfool(im, net, lambda_fac=3., num_classes=10, overshoot=0.02, max_iter=50, device='cuda'):
-
     image = copy.deepcopy(im)
     input_shape = image.size()
 
