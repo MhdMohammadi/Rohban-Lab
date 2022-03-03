@@ -12,6 +12,8 @@ import pickle
 import csv
 import os
 
+import matplotlib.pyplot as plt
+
 from datetime import datetime
 
 # import GPUtil
@@ -62,6 +64,12 @@ def inverse_transform(orig_x):
 
     return invTrans(orig_x).permute(0, 2, 3, 1)
 
+def convert_perturbation(i, sz):
+  if sz == 1:
+    return int(i)
+  elif sz == 3:
+    return torch.tensor([i // 4, (i % 4) // 2, i % 2]).to(device)
+
 
 def onepixel_perturbation_logits(orig_x):
     ''' returns logits of all possible perturbations of the images orig_x
@@ -80,10 +88,11 @@ def onepixel_perturbation_logits(orig_x):
         # orig_x_inv = inverse_transform(orig_x)
 
         for i in range(n_corners):
-            if orig_x.shape[-1] == 1:
-                pixel_val = int(i)
-            elif orig_x.shape[-1] == 3:
-                pixel_val = torch.tensor([i // 4, (i % 4) // 2, i % 2]).to(device)
+            pixel_val = convert_perturbation(i, orig_x.shape[-1])
+            # if orig_x.shape[-1] == 1:
+            #     pixel_val = int(i)
+            # elif orig_x.shape[-1] == 3:
+            #     pixel_val = torch.tensor([i // 4, (i % 4) // 2, i % 2]).to(device)
 
             for j in range(dims[1]):
                 for q in range(dims[2]):
@@ -121,6 +130,7 @@ def npixels_perturbation(orig_x, dist, pert_size):
     output shape = orig_x shape
     creates a batch of images (given a batch), each differs pert_size pixels from the original.'''
 
+
     with torch.no_grad():
         ind2 = torch.rand(dist.shape) + 1e-12
         ind2 = ind2.to(device)
@@ -129,15 +139,15 @@ def npixels_perturbation(orig_x, dist, pert_size):
         batch_x = orig_x.clone()
         # ind_prime shape: (batch_size, pert_size)
         ind_prime = torch.topk(ind2, pert_size, 1).indices
-
         p11, p12, d1 = flat2square(ind_prime, orig_x.shape[1:])
         d1 = d1.unsqueeze(2).to(device)
-
         counter = torch.arange(0, orig_x.shape[0])
 
         # TODO: are p11, p12 arrays? does the line below work?
         for i in range(orig_x.shape[0]):
-            batch_x[i, p11[i], p12[i]] = d1[i].float()
+            for j in range(d1.shape[1]):
+              batch_x[i, p11[i, j], p12[i, j]] = convert_perturbation(d1[i, j], orig_x.shape[-1])
+
 
     return batch_x
 
@@ -264,8 +274,14 @@ def attack(x_nat, y_nat):
 
 def save_adversarial_imgs(adv):
     global adv_index
+    os.makedirs(os.path.join(".", "adv_data"), exist_ok=True)
+
     for i in range(adv.shape[0]):
-        print(adv.shape)
+      print(adv[i].max(), adv[i].min())
+      tmp = torch.clone(adv[i]).cpu()
+      plt.imshow(tmp)
+      plt.savefig('./adv_data/img' + str(adv_index) + '.jpg')
+      adv_index += 1
 
 def train(net, num_epochs, init_epoch, init_batch, train_dir):
     global criterion
@@ -508,7 +524,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    trainloader, testloader, n_classes = utils.dataset_loader(args.dataset, batch_size=16)
+    trainloader, testloader, n_classes = utils.dataset_loader(args.dataset, batch_size=512)
 
     n_channels = next(iter(trainloader))[0].shape[1]
 
