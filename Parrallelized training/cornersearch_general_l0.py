@@ -137,10 +137,6 @@ def npixels_perturbation(orig_x, dist, pert_size):
         for i in range(orig_x.shape[0]):
             batch_x[i, p11[i], p12[i]] = d1[i].float()
 
-    if torch.isnan(batch_x).any() == True:
-        print('something NaN has been found ! wtf !')
-        exit(0)
-
     return batch_x
 
 
