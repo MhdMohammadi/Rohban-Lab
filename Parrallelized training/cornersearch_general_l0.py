@@ -222,9 +222,13 @@ def attack(x_nat, y_nat):
     global k
 
     adv = torch.clone(x_nat).to(device)
+
+    # Mohammad: Needs to be checked
     logit_2 = onepixel_perturbation_logits(x_nat)
     print_time("one pixel perturbations made. Now into Black Box Solver's forward pass.")
 
+
+    # Mohammad: no idea
     # Creates the distribution
     # dist shape = (batch_size, perturbation #, n_classes)
     dist = bb.apply(logit_2, y_nat)
@@ -235,7 +239,9 @@ def attack(x_nat, y_nat):
         for i in range(n_iter):
             dist_cl = torch.clone(dist[:, :, cl])
 
-            # Changin perturbations size to avoid overfitting. Preference on lower perturbation size.
+            # Mohammad: needs to be checked
+            print('in oon jaeie ke dare n_pixel_perturbation mizane', int(k - i * (k // n_iter)))
+            # Changing perturbations size to avoid overfitting. Preference on lower perturbation size.
             batch_x = npixels_perturbation(x_nat, dist_cl, int(k - i * (k // n_iter)))
 
             # Mohammad: I've changed here
@@ -243,6 +249,9 @@ def attack(x_nat, y_nat):
             preds = torch.argmax(net(batch_x.permute(0, 3, 1, 2)), dim=1)
             # preds = torch.argmax(net(batch_x), dim=1)
             adv_indices = torch.nonzero(~torch.eq(preds, y_nat), as_tuple=False).flatten()
+
+            print('in ham baraye ine ke bebinim aya farghi mikone vaghti n bar run mikonim ya chi')
+            print(adv_indices)
 
             adv[adv_indices] = batch_x[adv_indices]
             found_adv[adv_indices] = 1
@@ -282,6 +291,7 @@ def train(net, num_epochs, init_epoch, init_batch, train_dir):
             x_nat = x_nat.permute(0, 2, 3, 1).to(device)
             optimizer.zero_grad()
 
+            # Mohammad: needs to be checked
             adv = attack(x_nat, y_nat)
 
             # Mohammad: I've changed here
@@ -299,6 +309,7 @@ def train(net, num_epochs, init_epoch, init_batch, train_dir):
             print("training loss:", loss.item())
             net.eval()
 
+            # Mohammad: checked, acc on test set
             clean_acc = normal_acc()
             log_info["train_clean_acc"] = clean_acc
             log_info["epoch"] = epoch + init_epoch
@@ -436,6 +447,7 @@ def pre_train(model, num_epochs, path):
     # plt.show()
 
 
+# Mohammad: checked, except the black box, everything is clear.
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Define hyperparameters.')
     parser.add_argument('--pre_train', type=str, default='OFF', help='OFF, ON')
@@ -533,7 +545,7 @@ if __name__ == '__main__':
 
                 train_directory = os.path.join(args.train_directory,
                                                "l_" + str(lambda_val) + "_N_" + str(n_max) + "_e_" + str(
-                                                   n_iter) + "PGD")
+                                                   n_iter))
 
                 net = utils.net_loader(args.net_arch, n_channels)
                 # net.load_state_dict(ref_net.state_dict())
