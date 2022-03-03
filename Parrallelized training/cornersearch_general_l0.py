@@ -498,7 +498,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    trainloader, testloader, n_classes = utils.dataset_loader(args.dataset)
+    trainloader, testloader, n_classes = utils.dataset_loader(args.dataset, batch_size=16)
 
     n_channels = next(iter(trainloader))[0].shape[1]
 
