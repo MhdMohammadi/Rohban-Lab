@@ -29,6 +29,8 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 log_info = {"epoch": 0, "batch": 0, "train_adv_acc": 0, "train_clean_acc": 0, "train_loss": 0, "time": 0}
 
 
+adv_index = 0
+
 # def show_gpu_usage():
 #   while True:
 #       time.sleep(60)
@@ -260,6 +262,10 @@ def attack(x_nat, y_nat):
 
     return adv
 
+def save_adversarial_imgs(adv):
+    global adv_index
+    for i in range(adv.shape[0]):
+        print(adv.shape)
 
 def train(net, num_epochs, init_epoch, init_batch, train_dir):
     global criterion
@@ -286,6 +292,7 @@ def train(net, num_epochs, init_epoch, init_batch, train_dir):
             # Mohammad: needs to be checked
             adv = attack(x_nat, y_nat)
 
+            save_adversarial_imgs(adv)
             # Mohammad: I've changed here
             # Remove Permute
             outputs = net(adv.permute(0, 3, 1, 2))
