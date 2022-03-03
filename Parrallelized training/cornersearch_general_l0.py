@@ -236,7 +236,6 @@ def attack(x_nat, y_nat):
             dist_cl = torch.clone(dist[:, :, cl])
 
             # Mohammad: needs to be checked
-            print('in oon jaeie ke dare n_pixel_perturbation mizane', int(k - i * (k // n_iter)))
             # Changing perturbations size to avoid overfitting. Preference on lower perturbation size.
             batch_x = npixels_perturbation(x_nat, dist_cl, int(k - i * (k // n_iter)))
 
@@ -245,9 +244,6 @@ def attack(x_nat, y_nat):
             preds = torch.argmax(net(batch_x.permute(0, 3, 1, 2)), dim=1)
             # preds = torch.argmax(net(batch_x), dim=1)
             adv_indices = torch.nonzero(~torch.eq(preds, y_nat), as_tuple=False).flatten()
-
-            print('in ham baraye ine ke bebinim aya farghi mikone vaghti n bar run mikonim ya chi')
-            print(adv_indices)
 
             adv[adv_indices] = batch_x[adv_indices]
             found_adv[adv_indices] = 1
@@ -464,7 +460,7 @@ if __name__ == '__main__':
     # sgd
     # start = 0.1, each 50, 75% : multiply 0.1
     # parser.add_argument('--lr', type=float, default=0.001)
-    parser.add_argument('--lr', type=float, default=0.01)
+    parser.add_argument('--lr', type=float, default=0.1)
 
     # epoch = 12 for test
     parser.add_argument('--epochs', type=int, default=12)
