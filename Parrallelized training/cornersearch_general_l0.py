@@ -12,7 +12,7 @@ import pickle
 import csv
 import os
 
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
 from datetime import datetime
 
@@ -272,16 +272,16 @@ def attack(x_nat, y_nat):
 
     return adv
 
-def save_adversarial_imgs(adv):
-    global adv_index
-    os.makedirs(os.path.join(".", "adv_data"), exist_ok=True)
-
-    for i in range(adv.shape[0]):
-      print(adv[i].max(), adv[i].min())
-      tmp = torch.clone(adv[i]).cpu()
-      plt.imshow(tmp)
-      plt.savefig('./adv_data/img' + str(adv_index) + '.jpg')
-      adv_index += 1
+# def save_adversarial_imgs(adv):
+#     global adv_index
+#     os.makedirs(os.path.join(".", "adv_data"), exist_ok=True)
+#
+#     for i in range(adv.shape[0]):
+#       print(adv[i].max(), adv[i].min())
+#       tmp = torch.clone(adv[i]).cpu()
+#       plt.imshow(tmp)
+#       plt.savefig('./adv_data/img' + str(adv_index) + '.jpg')
+#       adv_index += 1
 
 def train(net, num_epochs, init_epoch, init_batch, train_dir):
     global criterion
@@ -308,7 +308,7 @@ def train(net, num_epochs, init_epoch, init_batch, train_dir):
             # Mohammad: needs to be checked
             adv = attack(x_nat, y_nat)
 
-            save_adversarial_imgs(adv)
+            # save_adversarial_imgs(adv)
             # Mohammad: I've changed here
             # Remove Permute
             outputs = net(adv.permute(0, 3, 1, 2))
