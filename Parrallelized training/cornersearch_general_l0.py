@@ -12,7 +12,7 @@ import pickle
 import csv
 import os
 
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
 from datetime import datetime
 
@@ -272,16 +272,16 @@ def attack(x_nat, y_nat):
 
     return adv
 
-# def save_adversarial_imgs(adv):
-#     global adv_index
-#     os.makedirs(os.path.join(".", "adv_data"), exist_ok=True)
-#
-#     for i in range(adv.shape[0]):
-#       print(adv[i].max(), adv[i].min())
-#       tmp = torch.clone(adv[i]).cpu()
-#       plt.imshow(tmp)
-#       plt.savefig('./adv_data/img' + str(adv_index) + '.jpg')
-#       adv_index += 1
+def save_adversarial_imgs(adv):
+    global adv_index
+    os.makedirs(os.path.join(".", "adv_data"), exist_ok=True)
+
+    for i in range(adv.shape[0]):
+      print(adv[i].max(), adv[i].min())
+      tmp = torch.clone(adv[i]).cpu()
+      plt.imshow(tmp)
+      plt.savefig('./adv_data/img' + str(adv_index) + '.jpg')
+      adv_index += 1
 
 def train(net, num_epochs, init_epoch, init_batch, train_dir):
     global criterion
@@ -306,9 +306,12 @@ def train(net, num_epochs, init_epoch, init_batch, train_dir):
             optimizer.zero_grad()
 
             # Mohammad: needs to be checked
-            adv = attack(x_nat, y_nat)
+            # with torch.no_grad():
+            #   adv = attack(x_nat, y_nat)
+            adv = x_nat
+            print('attack zade masalan', adv.max(), adv.min())
 
-            # save_adversarial_imgs(adv)
+            save_adversarial_imgs(adv)
             # Mohammad: I've changed here
             # Remove Permute
             outputs = net(adv.permute(0, 3, 1, 2))
@@ -318,6 +321,7 @@ def train(net, num_epochs, init_epoch, init_batch, train_dir):
             print(f"y_nat:{y_nat}")
             loss = criterion(outputs, y_nat)
 
+            # print(loss.weight)
             loss.backward()
             optimizer.step()
 
@@ -486,7 +490,7 @@ if __name__ == '__main__':
     # sgd
     # start = 0.1, each 50, 75% : multiply 0.1
     # parser.add_argument('--lr', type=float, default=0.001)
-    parser.add_argument('--lr', type=float, default=0.1)
+    parser.add_argument('--lr', type=float, default=0.01)
 
     # epoch = 12 for test
     parser.add_argument('--epochs', type=int, default=12)
@@ -524,7 +528,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    trainloader, testloader, n_classes = utils.dataset_loader(args.dataset, batch_size=512)
+    trainloader, testloader, n_classes = utils.dataset_loader(args.dataset, batch_size=2)
 
     n_channels = next(iter(trainloader))[0].shape[1]
 
