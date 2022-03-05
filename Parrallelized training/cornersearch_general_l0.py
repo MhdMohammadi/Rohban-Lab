@@ -277,7 +277,7 @@ def save_adversarial_imgs(adv):
     os.makedirs(os.path.join(".", "adv_data"), exist_ok=True)
 
     for i in range(adv.shape[0]):
-      print(adv[i].max(), adv[i].min())
+      # print(adv[i].max(), adv[i].min())
       tmp = torch.clone(adv[i]).cpu()
       plt.imshow(tmp)
       plt.savefig('./adv_data/img' + str(adv_index) + '.jpg')
@@ -307,9 +307,9 @@ def train(net, num_epochs, init_epoch, init_batch, train_dir):
 
             # Mohammad: needs to be checked
             # with torch.no_grad():
-            #   adv = attack(x_nat, y_nat)
+            # adv = attack(x_nat, y_nat)
             adv = x_nat
-            print('attack zade masalan', adv.max(), adv.min())
+            # print('attack zade masalan', adv.max(), adv.min())
 
             save_adversarial_imgs(adv)
             # Mohammad: I've changed here
@@ -528,7 +528,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    trainloader, testloader, n_classes = utils.dataset_loader(args.dataset, batch_size=512)
+    trainloader, testloader, n_classes = utils.dataset_loader(args.dataset, batch_size=2)
 
     n_channels = next(iter(trainloader))[0].shape[1]
 
