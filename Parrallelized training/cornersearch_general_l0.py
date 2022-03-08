@@ -404,7 +404,6 @@ def pre_train(model, num_epochs, path):
         print('epoch ' + str(epoch) + ' has just started!')
         correct = 0
         total = 0
-        print('are you kidding me ?')
         temp_losses = []
         tmp_ind = 0
         for data in trainloader:
@@ -535,7 +534,6 @@ if __name__ == '__main__':
     n_corners = 2 ** n_channels
 
     k = args.k
-
     # os.makedirs(args.train_directory, exist_ok=True)
 
     # pre_train_dir = './pre_trained_models'
