@@ -70,9 +70,9 @@ def net_loader(net_arch, channels=1):
         return models.Conv2Net(channels)
 
     elif net_arch == 'ResNet18':
-        # return resnet2.ResNet18()
+        return resnet2.ResNet18()
         # return resnet.ResNet18()
-        return torch_models.resnet18(num_classes=10)
+        # return torch_models.resnet18(num_classes=10)
 
     elif net_arch == 'ResNet50':
         return resnet.ResNet50()
