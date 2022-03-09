@@ -307,8 +307,8 @@ def train(net, num_epochs, init_epoch, init_batch, train_dir):
 
             # Mohammad: needs to be checked
             # with torch.no_grad():
-            # adv = attack(x_nat, y_nat)
-            adv = x_nat
+            adv = attack(x_nat, y_nat)
+            # adv = x_nat
             # print('attack zade masalan', adv.max(), adv.min())
 
             save_adversarial_imgs(adv)
@@ -317,8 +317,8 @@ def train(net, num_epochs, init_epoch, init_batch, train_dir):
             outputs = net(adv.permute(0, 3, 1, 2))
             # outputs = net(adv)
 
-            print(f"outputs:{outputs}")
-            print(f"y_nat:{y_nat}")
+            # print(f"outputs:{outputs}")
+            # print(f"y_nat:{y_nat}")
             loss = criterion(outputs, y_nat)
 
             # print(loss.weight)
