@@ -489,7 +489,7 @@ if __name__ == '__main__':
     # sgd
     # start = 0.1, each 50, 75% : multiply 0.1
     # parser.add_argument('--lr', type=float, default=0.001)
-    parser.add_argument('--lr', type=float, default=0.1)
+    parser.add_argument('--lr', type=float, default=0.001)
 
     # epoch = 12 for test
     parser.add_argument('--epochs', type=int, default=12)
