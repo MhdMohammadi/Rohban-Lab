@@ -12,7 +12,7 @@ import pickle
 import csv
 import os
 
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
 from datetime import datetime
 
@@ -311,7 +311,7 @@ def train(net, num_epochs, init_epoch, init_batch, train_dir):
             # adv = x_nat
             # print('attack zade masalan', adv.max(), adv.min())
 
-            save_adversarial_imgs(adv)
+            # save_adversarial_imgs(adv)
             # Mohammad: I've changed here
             # Remove Permute
             outputs = net(adv.permute(0, 3, 1, 2))
