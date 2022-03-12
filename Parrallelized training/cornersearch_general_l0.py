@@ -68,7 +68,9 @@ def convert_perturbation(i, sz):
   if sz == 1:
     return int(i)
   elif sz == 3:
-    return torch.tensor([i // 4, (i % 4) // 2, i % 2]).to(device)
+    if isinstance(i, int):
+        i = torch.tensor(i)
+    return torch.stack((i // 4, (i % 4) // 2, i % 2), dim=-1).to(device)
 
 
 def onepixel_perturbation_logits(orig_x):
@@ -144,9 +146,15 @@ def npixels_perturbation(orig_x, dist, pert_size):
         counter = torch.arange(0, orig_x.shape[0])
 
         # TODO: are p11, p12 arrays? does the line below work?
-        for i in range(orig_x.shape[0]):
-            for j in range(d1.shape[1]):
-              batch_x[i, p11[i, j], p12[i, j]] = convert_perturbation(d1[i, j], orig_x.shape[-1])
+
+        for j in range(d1.shape[1]):
+            tmp = convert_perturbation(torch.flatten(d1[:, j]), orig_x.shape[-1])
+            tmp = tmp.type(torch.float)
+            batch_x[list(range(orig_x.shape[0])), p11[:, j], p12[:, j]] = tmp
+
+        # for i in range(orig_x.shape[0]):
+        #     for j in range(d1.shape[1]):
+        #       batch_x[i, p11[i, j], p12[i, j]] = convert_perturbation(d1[i, j], orig_x.shape[-1])
 
 
     return batch_x
@@ -289,11 +297,12 @@ def train(net, num_epochs, init_epoch, init_batch, train_dir):
     scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[6, 9], gamma=0.1)
 
     for epoch in range(num_epochs):
-        net.train()
         steps = 0
         running_loss = 0.0
 
         for i, data in enumerate(trainloader, 0):
+            net.train()
+
             if i < init_batch:
                 continue
             print_time("Batch " + str(i) + " started.")
