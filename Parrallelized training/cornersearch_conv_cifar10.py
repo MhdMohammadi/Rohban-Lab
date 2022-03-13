@@ -63,6 +63,7 @@ def onepixel_perturbation_logits(orig_x):
 
         for i in range(n_corners):
             pixel_val = convert_perturbation(i, orig_x.shape[-1])
+            print(i)
             # if orig_x.shape[-1] == 1:
             #     pixel_val = int(i)
             # elif orig_x.shape[-1] == 3:
@@ -122,7 +123,7 @@ def npixels_perturbation(orig_x, dist, pert_size):
         for j in range(d1.shape[1]):
             tmp = convert_perturbation(torch.flatten(d1[:, j]), orig_x.shape[-1])
             tmp = tmp.type(torch.float)
-            batch_x[list(range(orig_x.shape[0])), p11[:, j], p12[:, j], 0] = tmp
+            batch_x[list(range(orig_x.shape[0])), p11[:, j], p12[:, j]] = tmp
 
         # for i in range(orig_x.shape[0]):
         #     for j in range(d1.shape[1]):
@@ -358,9 +359,9 @@ def normal_acc():
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Define hyperparameters.')
-    parser.add_argument('--dataset', type=str, default='MNIST', help='MNIST, CIFAR10')
+    parser.add_argument('--dataset', type=str, default='CIFAR10', help='MNIST, CIFAR10')
     parser.add_argument('--net_arch', type=str, default='Conv2Net', help='Conv2Net, ResNet18, ResNet50')
-    parser.add_argument('--k', type=int, default=5)
+    parser.add_argument('--k', type=int, default=15)
 
     # parser.add_argument('--n_examples', type=int, default=20)
     # parser.add_argument('--n_max', type=int, default=24)
@@ -392,7 +393,7 @@ if __name__ == '__main__':
     # num_examples = [10, 50]
 
     # MNIST Values
-    lambda_vals = [0.5]
+    lambda_vals = [0.1]
     num_maxs = [50]
     num_examples = [30]
 
