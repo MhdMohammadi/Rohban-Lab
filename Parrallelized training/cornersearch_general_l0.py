@@ -529,7 +529,7 @@ if __name__ == '__main__':
     # lambda_vals = [0.1, 0.5, 2, 5]
     lambda_vals = [0.1]
 
-    num_maxs = [50]
+    num_maxs = [50]»
 
     # decrease num_examples
     num_examples = [15]
