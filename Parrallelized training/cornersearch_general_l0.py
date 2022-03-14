@@ -323,8 +323,8 @@ def train(net, num_epochs, init_epoch, init_batch, train_dir):
             # save_adversarial_imgs(adv)
             # Mohammad: I've changed here
             # Remove Permute
-            # outputs = net(adv.permute(0, 3, 1, 2))
-            outputs = net(adv)
+            outputs = net(adv.permute(0, 3, 1, 2))
+            # outputs = net(adv)
 
             # print(f"outputs:{outputs}")
             # print(f"y_nat:{y_nat}")
