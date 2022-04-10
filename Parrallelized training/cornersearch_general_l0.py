@@ -557,11 +557,11 @@ if __name__ == '__main__':
     k = args.k
     # os.makedirs(args.train_directory, exist_ok=True)
 
-    # pre_train_dir = './pre_trained_models'
-    # try:
-    #     os.mkdir(pre_train_dir)
-    # except:
-    #     pass
+    pre_train_dir = './pre_trained_models'
+    try:
+        os.mkdir(pre_train_dir)
+    except:
+        pass
 
     if args.pre_train == 'OFF':
         ref_net = utils.net_loader(args.net_arch, n_channels).to(device)
