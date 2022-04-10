@@ -367,8 +367,8 @@ def train(net, num_epochs, init_epoch, init_batch, train_dir):
             print("\n")
 
         scheduler.step()
-        # path = os.path.join(train_dir, "models/e_" + str(init_epoch + epoch) + ".pth")
-        # torch.save(net.state_dict(), path)
+        path = os.path.join(train_dir, "models/e_" + str(init_epoch + epoch) + ".pth")
+        torch.save(net.state_dict(), path)
 
         with open(os.path.join(train_dir, "train_info"), 'wb') as file_:
             pickle.dump([init_epoch + epoch], file_)
@@ -510,7 +510,7 @@ if __name__ == '__main__':
     # sgd
     # start = 0.1, each 50, 75% : multiply 0.1
     # parser.add_argument('--lr', type=float, default=0.001)
-    parser.add_argument('--lr', type=float, default=0.1)
+    parser.add_argument('--lr', type=float, default=0.01)
 
     # epoch = 12 for test
     parser.add_argument('--epochs', type=int, default=60)
