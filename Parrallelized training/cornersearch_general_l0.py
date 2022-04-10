@@ -565,7 +565,7 @@ if __name__ == '__main__':
 
     if args.pre_train == 'OFF':
         ref_net = utils.net_loader(args.net_arch, n_channels).to(device)
-        ref_net.load_state_dict(torch.load(pre_train_dir + '/pretrained88.pth'))
+        ref_net.load_state_dict(torch.load(pre_train_dir + '/model2.pth'))
     else:
         ref_net = utils.net_loader(args.net_arch, n_channels).to(device)
         pre_train(ref_net, 12, pre_train_dir)
