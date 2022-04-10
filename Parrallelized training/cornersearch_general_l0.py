@@ -30,8 +30,8 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 log_info = {"epoch": 0, "batch": 0, "train_adv_acc": 0, "train_clean_acc": 0, "train_loss": 0, "time": 0}
 
-
 adv_index = 0
+
 
 # def show_gpu_usage():
 #   while True:
@@ -45,32 +45,36 @@ def print_time(message):
 
 
 def transform(orig_x):
-    orig_x = orig_x.permute((0, 3, 1, 2))
-
-    Trans = transforms.Compose([
-        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
-    ])
-
-    return Trans(orig_x).permute(0, 2, 3, 1)
+    orig_x = orig_x.permute((0, 2, 3, 1))
+    mean = torch.tensor([0.4914, 0.4822, 0.4465]).to(device)
+    std = torch.tensor([0.2023, 0.1994, 0.2010]).to(device)
+    orig_x = (orig_x - mean)/std;
+    return orig_x.permute((0, 3, 1, 2))
 
 
-def inverse_transform(orig_x):
-    orig_x = orig_x.permute((0, 3, 1, 2))
+# def inverse_transform(orig_x):
+#     # orig_x = orig_x.permute((0, 3, 1, 2))
+#
+#     invTrans = transforms.Compose([
+#         transforms.Normalize(mean=[0., 0., 0.], std=[1 / 0.2023, 1 / 0.1994, 1 / 0.2010]),
+#         transforms.Normalize(mean=[-0.4914, -0.4822, -0.4465], std=[1., 1., 1.]),
+#     ])
+#
+    # return invTrans(orig_x)#/.permute(0, 2, 3, 1)
 
-    invTrans = transforms.Compose([
-        transforms.Normalize(mean=[0., 0., 0.], std=[1 / 0.2023, 1 / 0.1994, 1 / 0.2010]),
-        transforms.Normalize(mean=[-0.4914, -0.4822, -0.4465], std=[1., 1., 1.]),
-    ])
 
-    return invTrans(orig_x).permute(0, 2, 3, 1)
+def forward(batch):
+    return net(batch)
+    # return net(transform(batch))
+
 
 def convert_perturbation(i, sz):
-  if sz == 1:
-    return int(i)
-  elif sz == 3:
-    if isinstance(i, int):
-        i = torch.tensor(i)
-    return torch.stack((i // 4, (i % 4) // 2, i % 2), dim=-1).to(device)
+    if sz == 1:
+        return int(i)
+    elif sz == 3:
+        if isinstance(i, int):
+            i = torch.tensor(i)
+        return torch.stack((i // 4, (i % 4) // 2, i % 2), dim=-1).to(device)
 
 
 def onepixel_perturbation_logits(orig_x):
@@ -107,7 +111,8 @@ def onepixel_perturbation_logits(orig_x):
 
                     # Mohammad: I've changed here
                     # Remove permute if not using pytorch's ResNet.
-                    logits[:, pic_num, :] = net(perturbed.permute(0, 3, 1, 2))
+                    # logits[:, pic_num, :] = net(perturbed.permute(0, 3, 1, 2))
+                    logits[:, pic_num, :] = forward(perturbed.permute(0, 3, 1, 2))
                     # logits[:, pic_num, :] = net(perturbed)
 
     return logits
@@ -132,7 +137,6 @@ def npixels_perturbation(orig_x, dist, pert_size):
     output shape = orig_x shape
     creates a batch of images (given a batch), each differs pert_size pixels from the original.'''
 
-
     with torch.no_grad():
         ind2 = torch.rand(dist.shape) + 1e-12
         ind2 = ind2.to(device)
@@ -155,7 +159,6 @@ def npixels_perturbation(orig_x, dist, pert_size):
         # for i in range(orig_x.shape[0]):
         #     for j in range(d1.shape[1]):
         #       batch_x[i, p11[i, j], p12[i, j]] = convert_perturbation(d1[i, j], orig_x.shape[-1])
-
 
     return batch_x
 
@@ -243,7 +246,6 @@ def attack(x_nat, y_nat):
     logit_2 = onepixel_perturbation_logits(x_nat)
     print_time("one pixel perturbations made. Now into Black Box Solver's forward pass.")
 
-
     # Mohammad: no idea
     # Creates the distribution
     # dist shape = (batch_size, perturbation #, n_classes)
@@ -261,7 +263,9 @@ def attack(x_nat, y_nat):
 
             # Mohammad: I've changed here
             # Remove permute
-            preds = torch.argmax(net(batch_x.permute(0, 3, 1, 2)), dim=1)
+            # preds = torch.argmax(net(batch_x.permute(0, 3, 1, 2)), dim=1)
+            preds = torch.argmax(forward(batch_x.permute(0, 3, 1, 2)), dim=1)
+
             # preds = torch.argmax(net(batch_x), dim=1)
             adv_indices = torch.nonzero(~torch.eq(preds, y_nat), as_tuple=False).flatten()
 
@@ -280,21 +284,23 @@ def attack(x_nat, y_nat):
 
     return adv
 
+
 def save_adversarial_imgs(adv):
     global adv_index
     os.makedirs(os.path.join(".", "adv_data"), exist_ok=True)
 
     for i in range(adv.shape[0]):
-      # print(adv[i].max(), adv[i].min())
-      tmp = torch.clone(adv[i]).cpu()
-      plt.imshow(tmp)
-      plt.savefig('./adv_data/img' + str(adv_index) + '.jpg')
-      adv_index += 1
+        # print(adv[i].max(), adv[i].min())
+        tmp = torch.clone(adv[i]).cpu()
+        plt.imshow(tmp)
+        plt.savefig('./adv_data/img' + str(adv_index) + '.jpg')
+        adv_index += 1
+
 
 def train(net, num_epochs, init_epoch, init_batch, train_dir):
     global criterion
 
-    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[6, 9], gamma=0.1)
+    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[30, 45], gamma=0.1)
 
     for epoch in range(num_epochs):
         steps = 0
@@ -316,14 +322,15 @@ def train(net, num_epochs, init_epoch, init_batch, train_dir):
 
             # Mohammad: needs to be checked
             # with torch.no_grad():
-            # adv = attack(x_nat, y_nat)
-            adv = x_nat
+            adv = attack(x_nat, y_nat)
+            # adv = x_nat
             # print('attack zade masalan', adv.max(), adv.min())
 
             # save_adversarial_imgs(adv)
             # Mohammad: I've changed here
             # Remove Permute
-            outputs = net(adv.permute(0, 3, 1, 2))
+            # outputs = net(adv.permute(0, 3, 1, 2))
+            outputs = forward(adv.permute(0, 3, 1, 2))
             # outputs = net(adv)
 
             # print(f"outputs:{outputs}")
@@ -358,15 +365,16 @@ def train(net, num_epochs, init_epoch, init_batch, train_dir):
             # 	file_.close()
 
             print("\n")
+
         scheduler.step()
-        path = os.path.join(train_dir, "models/e_" + str(init_epoch + epoch) + ".pth")
-        torch.save(net.state_dict(), path)
+        # path = os.path.join(train_dir, "models/e_" + str(init_epoch + epoch) + ".pth")
+        # torch.save(net.state_dict(), path)
 
         with open(os.path.join(train_dir, "train_info"), 'wb') as file_:
             pickle.dump([init_epoch + epoch], file_)
             file_.close()
 
-        print("model saved!\n")
+        # print("model saved!\n")
 
 
 def normal_acc():
@@ -379,7 +387,8 @@ def normal_acc():
 
             # Mohammad: I've changed here
             # Remove permute
-            outputs = net(images.permute(0, 3, 1, 2))
+            # outputs = net(images.permute(0, 3, 1, 2))
+            outputs = forward(images.permute(0, 3, 1, 2))
             # outputs = net(images)
 
             _, predicted = torch.max(outputs.data, 1)
@@ -487,7 +496,7 @@ if __name__ == '__main__':
     # parser.add_argument('--net_arch', type=str, default='Conv2Net', help='Conv2Net, ResNet18, ResNet50')
     parser.add_argument('--net_arch', type=str, default='ResNet18', help='Conv2Net, ResNet18, ResNet50')
 
-    parser.add_argument('--k', type=int, default=5)
+    parser.add_argument('--k', type=int, default=10)
 
     # parser.add_argument('--n_examples', type=int, default=20)
     # parser.add_argument('--n_max', type=int, default=24)
@@ -498,10 +507,10 @@ if __name__ == '__main__':
     # sgd
     # start = 0.1, each 50, 75% : multiply 0.1
     # parser.add_argument('--lr', type=float, default=0.001)
-    parser.add_argument('--lr', type=float, default=0.001)
+    parser.add_argument('--lr', type=float, default=0.1)
 
     # epoch = 12 for test
-    parser.add_argument('--epochs', type=int, default=12)
+    parser.add_argument('--epochs', type=int, default=60)
     parser.add_argument('--train_directory', type=str, default=".")
     parser.add_argument('--resume', type=bool, default=False)
     parser.add_argument('--load_model', type=str, default="")
@@ -551,12 +560,12 @@ if __name__ == '__main__':
     # except:
     #     pass
 
-    # if args.pre_train == 'OFF':
-    #     ref_net = utils.net_loader(args.net_arch, n_channels).to(device)
-    #     ref_net.load_state_dict(torch.load(pre_train_dir + '/pretrained88.pth'))
-    # else:
-    #     ref_net = utils.net_loader(args.net_arch, n_channels).to(device)
-    #     pre_train(ref_net, 2, pre_train_dir)
+    if args.pre_train == 'OFF':
+        ref_net = utils.net_loader(args.net_arch, n_channels).to(device)
+        ref_net.load_state_dict(torch.load(pre_train_dir + '/pretrained88.pth'))
+    else:
+        ref_net = utils.net_loader(args.net_arch, n_channels).to(device)
+        pre_train(ref_net, 2, pre_train_dir)
 
     lambda_val, n_max, n_iter = None, None, None
 
