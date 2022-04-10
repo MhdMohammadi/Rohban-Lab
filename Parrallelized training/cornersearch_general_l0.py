@@ -589,7 +589,7 @@ if __name__ == '__main__':
                                                    n_iter))
 
                 net = utils.net_loader(args.net_arch, n_channels)
-                # net.load_state_dict(ref_net.state_dict())
+                net.load_state_dict(ref_net.state_dict())
                 net = nn.DataParallel(net)
                 net = net.to(device)
 
