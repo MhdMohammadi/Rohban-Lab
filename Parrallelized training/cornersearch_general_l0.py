@@ -419,6 +419,7 @@ def pre_train(model, num_epochs, path):
     train_accuracies = []
     test_accuracies = []
     for epoch in range(num_epochs):
+        model.train()
         print('epoch ' + str(epoch) + ' has just started!')
         correct = 0
         total = 0
@@ -465,6 +466,7 @@ def pre_train(model, num_epochs, path):
 
         train_losses.append(np.mean(temp_losses))
         train_accuracies.append(correct / total)
+        model.eval()
         with torch.no_grad():
             correct, total = 0, 0
             for data in testloader:
@@ -565,7 +567,7 @@ if __name__ == '__main__':
         ref_net.load_state_dict(torch.load(pre_train_dir + '/pretrained88.pth'))
     else:
         ref_net = utils.net_loader(args.net_arch, n_channels).to(device)
-        pre_train(ref_net, 2, pre_train_dir)
+        pre_train(ref_net, 12, pre_train_dir)
 
     lambda_val, n_max, n_iter = None, None, None
 
