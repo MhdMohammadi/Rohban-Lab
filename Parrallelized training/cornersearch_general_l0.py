@@ -474,6 +474,7 @@ def pre_train(model, num_epochs, path):
                 outputs = model(images)
                 temp_correct, temp_total = get_accuracy(outputs, labels)
                 correct += temp_correct
+
                 total += temp_total
             test_accuracies.append(correct / total)
         print('loss : ' + str(train_losses[-1]) + ' - train_accuracy : ' + str(
