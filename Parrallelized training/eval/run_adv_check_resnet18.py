@@ -35,7 +35,7 @@ transform = transforms.Compose([transforms.ToTensor()])
 
 transform_test = transforms.Compose([
     transforms.ToTensor(),
-    transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+    # transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
 ])
 testset = torchvision.datasets.CIFAR10(root='../data', train=False, download=True, transform=transform_test)
 
@@ -102,8 +102,8 @@ def adv_batch_acc(images, labels, args):
 
             correct = (predicted == torch.tensor(labels).to(device)).sum().item()
 
-
     return correct, total
+
 
 def normal_acc():
     correct = 0
@@ -113,7 +113,6 @@ def normal_acc():
             images, labels = data[0].to(device), data[1].to(device)
             images = images.permute(0, 2, 3, 1)
 
-            # Mohammad: I've changed here
             # Remove permute
             outputs = net(images.permute(0, 3, 1, 2))
             # outputs = net(images)
@@ -153,7 +152,7 @@ if __name__ == '__main__':
     #         'sparsity': args.k,
     #     	'size_incr': 5}
 
-    net = resnet2.ResNet18()
+    net = torch_models.resnet18(num_classes=10)
     # net = torch_models.resnet18(num_classes=10)
 
     net = nn.DataParallel(net)
@@ -195,7 +194,6 @@ if __name__ == '__main__':
         attack_args = {'attack': 'PA',
                        'sparsity': args.k}
 
-
     designated_model = [
         {'lambda_val': 0.5,
          'num_max': 24,
@@ -214,32 +212,26 @@ if __name__ == '__main__':
          'num_examples': 20}
     ]
 
-    model_paths = ["../pre_trained_models/trained_pgd.pth"]
+    model_paths = ["../pre_trained_models/final_pretrained.pth"]
     batches = [0, 1, 2]
 
     for path in model_paths:
         # net = nn.DataParallel(net)
         net.load_state_dict(torch.load(path))
-        # print(normal_acc())
+        net.eval()
+        print(normal_acc())
         batch_num = 0
         for data in testloader:
-            # print(len(data))
-            # par_dir = os.path.dirname(os.path.abspath(path))
-            # par_dir = os.path.join(par_dir, "eval")
-            # if not os.path.exists(par_dir):
-            #     os.makedirs(par_dir)
+            print(f'batch number {batch_num} has been started');
 
-            # b, e = batch_num * args.batch_size, min(len(testset), (batch_num + 1) * args.batch_size)
-            # images = torch.stack([testset[i][0] for i in range(b, e)])
-            # labels = torch.tensor([testset[i][1] for i in range(b, e)])
             images, labels = data[0], data[1]
 
             correct, total = adv_batch_acc(images, labels, attack_args)
-            # correct, total = 1, 1
+
             file_name = args.attack + ".csv"
             with open(file_name, 'a') as csvfile:
                 writer = csv.writer(csvfile)
                 if batch_num == 0:
-                  writer.writerow(["batch_num", "correct", "total"])
+                    writer.writerow(["batch_num", "correct", "total"])
                 writer.writerow([batch_num, correct, total])
             batch_num += 1
