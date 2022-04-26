@@ -480,7 +480,7 @@ def pre_train(model, num_epochs, path):
         print('loss : ' + str(train_losses[-1]) + ' - train_accuracy : ' + str(
             train_accuracies[-1]) + '- test_accuracy : ' + str(test_accuracies[-1]))
         print()
-        torch.save(model.state_dict(), path + '/model.pt')
+        torch.save(model.state_dict(), path + '/model.pth')
 
     # fig, axs = plt.subplots(3, figsize=(12, 12))
     # axs[0].plot(train_losses)
@@ -563,12 +563,12 @@ if __name__ == '__main__':
     except:
         pass
 
-    if args.pre_train == 'OFF':
-        ref_net = utils.net_loader(args.net_arch, n_channels).to(device)
-        ref_net.load_state_dict(torch.load(pre_train_dir + '/model2.pth'))
-    else:
-        ref_net = utils.net_loader(args.net_arch, n_channels).to(device)
-        pre_train(ref_net, 12, pre_train_dir)
+    # if args.pre_train == 'OFF':
+    #     ref_net = utils.net_loader(args.net_arch, n_channels).to(device)
+    #     ref_net.load_state_dict(torch.load(pre_train_dir + '/model2.pth'))
+    # else:
+    #     ref_net = utils.net_loader(args.net_arch, n_channels).to(device)
+    #     pre_train(ref_net, 12, pre_train_dir)
 
     lambda_val, n_max, n_iter = None, None, None
 
@@ -589,7 +589,7 @@ if __name__ == '__main__':
                                                    n_iter))
 
                 net = utils.net_loader(args.net_arch, n_channels)
-                net.load_state_dict(ref_net.state_dict())
+                # net.load_state_dict(ref_net.state_dict())
                 net = nn.DataParallel(net)
                 net = net.to(device)
 
