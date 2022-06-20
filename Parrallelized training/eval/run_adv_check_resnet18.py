@@ -25,6 +25,8 @@ import foolbox
 from foolbox.models import PyTorchModel
 
 import resnet2
+from robustbench.utils import load_model
+
 
 transform = transforms.Compose([transforms.ToTensor()])
 
@@ -218,6 +220,10 @@ if __name__ == '__main__':
     for path in model_paths:
         # net = nn.DataParallel(net)
         net.load_state_dict(torch.load(path))
+
+        net = load_model(model_name='Rade2021Helper_R18_ddpm', threat_model='L2')
+        net.to(device)
+
         net.eval()
         print(normal_acc())
         batch_num = 0
