@@ -5,7 +5,7 @@ import torch.utils.data as data
 import torchvision.transforms as transforms
 import numpy as np
 import os
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
 def get_logits(model, x_nat):
     x = torch.from_numpy(x_nat).permute(0, 3, 1, 2).float()
