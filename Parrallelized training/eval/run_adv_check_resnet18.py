@@ -131,7 +131,7 @@ def normal_acc():
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Define hyperparameters.')
     # parser.add_argument('--kappa', type=float, default=0.8)
-    parser.add_argument('--k', type=int, default=5)
+    parser.add_argument('--k', type=int, default=10)
     parser.add_argument('--n_examples', type=int, default=1000)
     parser.add_argument('--n_max', type=int, default=24)
     # parser.add_argument('--load_model', type=str, default="")
