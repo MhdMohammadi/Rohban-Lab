@@ -56,6 +56,23 @@ def dataset_loader(dataset, batch_size=512, num_workers=8):
         trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform_train)
         testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform_test)
 
+        if args.restrict:
+            target_classes = ['airplane', 'automobile', 'ship', 'dog', 'frog']
+            num_per_class = 1000
+            target_ids = [trainset.class_to_idx[c] for c in target_classes]
+            mask = None
+            for id in target_ids:
+                tmp = np.array(trainset.targets) == id
+                ps = np.cumsum(tmp) <= num_per_class
+                res = ps * tmp
+                if mask is None:
+                    mask = res
+                else:
+                    mask = np.logical_or(mask, res)
+
+            trainset.data = trainset.data[mask]
+            trainset.targets = np.array(trainset.targets)[mask].tolist()
+
         testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
         trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True,
                                                   num_workers=num_workers)

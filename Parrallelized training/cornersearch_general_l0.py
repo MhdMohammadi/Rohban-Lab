@@ -517,6 +517,7 @@ if __name__ == '__main__':
     parser.add_argument('--train_directory', type=str, default=".")
     parser.add_argument('--resume', type=bool, default=False)
     parser.add_argument('--load_model', type=str, default="")
+    parser.add_argument('--restrict', type=bool, default=False)
 
     # os.makedir(address)
 
