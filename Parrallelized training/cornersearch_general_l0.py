@@ -11,25 +11,12 @@ import torch.nn.functional as F
 import pickle
 import csv
 import os
-
-# import matplotlib.pyplot as plt
-
 from datetime import datetime
-
-# import GPUtil
-# import threading
-# import time
-
 import utils
-
 import math
 
-# import matplotlib.pyplot as plt
-
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
 log_info = {"epoch": 0, "batch": 0, "train_adv_acc": 0, "train_clean_acc": 0, "train_loss": 0, "time": 0}
-
 adv_index = 0
 
 
@@ -48,7 +35,7 @@ def transform(orig_x):
     orig_x = orig_x.permute((0, 2, 3, 1))
     mean = torch.tensor([0.4914, 0.4822, 0.4465]).to(device)
     std = torch.tensor([0.2023, 0.1994, 0.2010]).to(device)
-    orig_x = (orig_x - mean)/std;
+    orig_x = (orig_x - mean) / std;
     return orig_x.permute((0, 3, 1, 2))
 
 
@@ -60,7 +47,7 @@ def transform(orig_x):
 #         transforms.Normalize(mean=[-0.4914, -0.4822, -0.4465], std=[1., 1., 1.]),
 #     ])
 #
-    # return invTrans(orig_x)#/.permute(0, 2, 3, 1)
+# return invTrans(orig_x)#/.permute(0, 2, 3, 1)
 
 
 def forward(batch):
@@ -76,6 +63,24 @@ def convert_perturbation(i, sz):
             i = torch.tensor(i)
         return torch.stack((i // 4, (i % 4) // 2, i % 2), dim=-1).to(device)
 
+#
+# def NCHW_to_NHWC(data):
+#     return data.permute(0, 2, 3, 1)
+#
+#
+# def NHWCT_to_NCHW(data):
+#     return data.permute(0, 3, 1, 2)
+#
+#
+# def permute_data(data):
+#     if args.dataset == 'CIFAR10':
+#         return NCHW_to_NHWC(data)
+#
+#
+# def repermute_data(data):
+#     if args.dataset == 'CIFAR10':
+#         return NHCW_to_NCHT(data)
+#
 
 def onepixel_perturbation_logits(orig_x):
     ''' returns logits of all possible perturbations of the images orig_x
@@ -86,34 +91,21 @@ def onepixel_perturbation_logits(orig_x):
     with torch.no_grad():
 
         dims = orig_x.shape
-        pic_size = dims[1] * dims[2]
+        pic_size = dims[2] * dims[3]
         n_perturbed = pic_size * n_corners
 
         logits = torch.zeros(dims[0], n_perturbed, n_classes).to(device)
 
-        # orig_x_inv = inverse_transform(orig_x)
-
         for i in range(n_corners):
-            pixel_val = convert_perturbation(i, orig_x.shape[-1])
-            # if orig_x.shape[-1] == 1:
-            #     pixel_val = int(i)
-            # elif orig_x.shape[-1] == 3:
-            #     pixel_val = torch.tensor([i // 4, (i % 4) // 2, i % 2]).to(device)
-
-            for j in range(dims[1]):
-                for q in range(dims[2]):
+            pixel_val = convert_perturbation(i, orig_x.shape[1])
+            for j in range(dims[2]):
+                for q in range(dims[3]):
                     perturbed = torch.clone(orig_x)
-                    # perturbed = torch.clone(orig_x_inv)
+                    perturbed = perturbed.permute(0, 2, 3, 1)
                     perturbed[:, j, q] = pixel_val
-                    # perturbed = transform(perturbed)
-
+                    perturbed = perturbed.permute(0, 3, 1, 2)
                     pic_num = pic_size * i + j * dims[1] + q
-
-                    # Mohammad: I've changed here
-                    # Remove permute if not using pytorch's ResNet.
-                    # logits[:, pic_num, :] = net(perturbed.permute(0, 3, 1, 2))
-                    logits[:, pic_num, :] = forward(perturbed.permute(0, 3, 1, 2))
-                    # logits[:, pic_num, :] = net(perturbed)
+                    logits[:, pic_num, :] = forward(perturbed)
 
     return logits
 
@@ -128,7 +120,7 @@ def flat2square(ind, im_shape):
     c = (ind % im_size) % im_shape[1]
     r = ((ind % im_size) - c) // im_shape[0]
 
-    # row, columnt, perturbation #
+    # row, column, perturbation #
     return r, c, t
 
 
@@ -155,10 +147,6 @@ def npixels_perturbation(orig_x, dist, pert_size):
             tmp = convert_perturbation(torch.flatten(d1[:, j]), orig_x.shape[-1])
             tmp = tmp.type(torch.float)
             batch_x[list(range(orig_x.shape[0])), p11[:, j], p12[:, j]] = tmp
-
-        # for i in range(orig_x.shape[0]):
-        #     for j in range(d1.shape[1]):
-        #       batch_x[i, p11[i, j], p12[i, j]] = convert_perturbation(d1[i, j], orig_x.shape[-1])
 
     return batch_x
 
@@ -242,7 +230,6 @@ def attack(x_nat, y_nat):
 
     adv = torch.clone(x_nat).to(device)
 
-    # Mohammad: Needs to be checked
     logit_2 = onepixel_perturbation_logits(x_nat)
     print_time("one pixel perturbations made. Now into Black Box Solver's forward pass.")
 
@@ -257,16 +244,11 @@ def attack(x_nat, y_nat):
         for i in range(n_iter):
             dist_cl = torch.clone(dist[:, :, cl])
 
-            # Mohammad: needs to be checked
             # Changing perturbations size to avoid overfitting. Preference on lower perturbation size.
             batch_x = npixels_perturbation(x_nat, dist_cl, int(k - i * (k // n_iter)))
 
-            # Mohammad: I've changed here
-            # Remove permute
-            # preds = torch.argmax(net(batch_x.permute(0, 3, 1, 2)), dim=1)
-            preds = torch.argmax(forward(batch_x.permute(0, 3, 1, 2)), dim=1)
+            # preds = torch.argmax(forward(batch_x), dim=1)
 
-            # preds = torch.argmax(net(batch_x), dim=1)
             adv_indices = torch.nonzero(~torch.eq(preds, y_nat), as_tuple=False).flatten()
 
             adv[adv_indices] = batch_x[adv_indices]
@@ -300,9 +282,11 @@ def save_adversarial_imgs(adv):
 def train(net, num_epochs, init_epoch, init_batch, train_dir):
     global criterion
 
-    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[30, 45], gamma=0.1)
+    if args.dataset == 'CIFAR10':
+        scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[30, 45], gamma=0.1)
 
     for epoch in range(num_epochs):
+
         steps = 0
         running_loss = 0.0
 
@@ -317,27 +301,12 @@ def train(net, num_epochs, init_epoch, init_batch, train_dir):
             print("epoch:", init_epoch + epoch, "batch:", i)
 
             x_nat, y_nat = data[0].to(device), data[1].to(device)
-            x_nat = x_nat.permute(0, 2, 3, 1).to(device)
+
             optimizer.zero_grad()
-
-            # Mohammad: needs to be checked
-            # with torch.no_grad():
             adv = attack(x_nat, y_nat)
-            # adv = x_nat
-            # print('attack zade masalan', adv.max(), adv.min())
 
-            # save_adversarial_imgs(adv)
-            # Mohammad: I've changed here
-            # Remove Permute
-            # outputs = net(adv.permute(0, 3, 1, 2))
-            outputs = forward(adv.permute(0, 3, 1, 2))
-            # outputs = net(adv)
-
-            # print(f"outputs:{outputs}")
-            # print(f"y_nat:{y_nat}")
+            outputs = forward(adv)
             loss = criterion(outputs, y_nat)
-
-            # print(loss.weight)
             loss.backward()
             optimizer.step()
 
@@ -349,7 +318,7 @@ def train(net, num_epochs, init_epoch, init_batch, train_dir):
 
             # Mohammad: checked, acc on test set
             clean_acc = normal_acc()
-            log_info["train_clean_acc"] = clean_acc
+            log_info["clean_acc"] = clean_acc
             log_info["epoch"] = epoch + init_epoch
             log_info["batch"] = i
             log_info["train_loss"] = loss.item()
@@ -374,8 +343,6 @@ def train(net, num_epochs, init_epoch, init_batch, train_dir):
             pickle.dump([init_epoch + epoch], file_)
             file_.close()
 
-        # print("model saved!\n")
-
 
 def normal_acc():
     correct = 0
@@ -383,19 +350,14 @@ def normal_acc():
     with torch.no_grad():
         for data in testloader:
             images, labels = data[0].to(device), data[1].to(device)
-            images = images.permute(0, 2, 3, 1)
 
-            # Mohammad: I've changed here
-            # Remove permute
-            # outputs = net(images.permute(0, 3, 1, 2))
-            outputs = forward(images.permute(0, 3, 1, 2))
-            # outputs = net(images)
+            outputs = forward(images)
 
             _, predicted = torch.max(outputs.data, 1)
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
 
-    print("normal acc:\t", 100 * correct / total)
+    print("clean acc:\t", 100 * correct / total)
 
     return 100 * correct / total
 
@@ -407,156 +369,131 @@ def get_accuracy(output, labels):
     return correct, total
 
 
-def pre_train(model, num_epochs, path):
-    normal_criterion = nn.CrossEntropyLoss().to(device)
-    normal_optimizer = torch.optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=5e-4)
-    normal_scheduler = torch.optim.lr_scheduler.MultiStepLR(normal_optimizer, milestones=[math.floor(0.5 * num_epochs),
-                                                                                          math.floor(
-                                                                                              0.75 * num_epochs)],
-                                                            gamma=0.1)
+# def pre_train(model, num_epochs, path):
+#     normal_criterion = nn.CrossEntropyLoss().to(device)
+#     normal_optimizer = torch.optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=5e-4)
+#     normal_scheduler = torch.optim.lr_scheduler.MultiStepLR(normal_optimizer, milestones=[math.floor(0.5 * num_epochs),
+#                                                                                           math.floor(
+#                                                                                               0.75 * num_epochs)],
+#                                                             gamma=0.1)
+#
+#     train_losses = []
+#     train_accuracies = []
+#     test_accuracies = []
+#     for epoch in range(num_epochs):
+#         model.train()
+#         print('epoch ' + str(epoch) + ' has just started!')
+#         correct = 0
+#         total = 0
+#         temp_losses = []
+#         tmp_ind = 0
+#         for data in trainloader:
+#             print(tmp_ind)
+#             tmp_ind += 1
+#             x_nat = data[0].to(device)
+#             y_nat = data[1].to(device)
+#             output = model(x_nat)
+#             loss = normal_criterion(output, y_nat)
+#             normal_optimizer.zero_grad()
+#             loss.backward()
+#             normal_optimizer.step()
+#
+#             output = output.float()
+#             loss = loss.float()
+#
+#             # measure accuracy and record loss
+#
+#             temp_correct, temp_total = get_accuracy(output, y_nat)
+#             correct += temp_correct
+#             total += temp_total
+#             temp_losses.append(loss.item())
+#             # prec1 = accuracy(output.data, target)[0]
+#             # losses.update(loss.item(), input.size(0))
+#             # top1.update(prec1.item(), input.size(0))
+#
+#             # measure elapsed time
+#             # batch_time.update(time.time() - end)
+#             # end = time.time()
+#
+#             # if i % args.print_freq == 0:
+#             #     print('Epoch: [{0}][{1}/{2}]\t'
+#             #           'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
+#             #           'Prec@1 {top1.val:.3f} ({top1.avg:.3f})'.format(
+#             #         epoch, i, len(train_loader), batch_time=batch_time,
+#             #         data_time=data_time, loss=losses, top1=top1))
+#
+#             # print(y_nat)
+#             # return 0
+#         normal_scheduler.step()
+#
+#         train_losses.append(np.mean(temp_losses))
+#         train_accuracies.append(correct / total)
+#         model.eval()
+#         with torch.no_grad():
+#             correct, total = 0, 0
+#             for data in testloader:
+#                 images, labels = data[0].to(device), data[1].to(device)
+#                 outputs = model(images)
+#                 temp_correct, temp_total = get_accuracy(outputs, labels)
+#                 correct += temp_correct
+#
+#                 total += temp_total
+#             test_accuracies.append(correct / total)
+#         print('loss : ' + str(train_losses[-1]) + ' - train_accuracy : ' + str(
+#             train_accuracies[-1]) + '- test_accuracy : ' + str(test_accuracies[-1]))
+#         print()
+#         torch.save(model.state_dict(), path + '/model.pth')
+#
+#     # fig, axs = plt.subplots(3, figsize=(12, 12))
+#     # axs[0].plot(train_losses)
+#     # axs[1].plot(train_accuracies)
+#     # axs[2].plot(test_accuracies)
+#     # plt.show()
 
-    train_losses = []
-    train_accuracies = []
-    test_accuracies = []
-    for epoch in range(num_epochs):
-        model.train()
-        print('epoch ' + str(epoch) + ' has just started!')
-        correct = 0
-        total = 0
-        temp_losses = []
-        tmp_ind = 0
-        for data in trainloader:
-            print(tmp_ind)
-            tmp_ind += 1
-            x_nat = data[0].to(device)
-            y_nat = data[1].to(device)
-            output = model(x_nat)
-            loss = normal_criterion(output, y_nat)
-            normal_optimizer.zero_grad()
-            loss.backward()
-            normal_optimizer.step()
 
-            output = output.float()
-            loss = loss.float()
-
-            # measure accuracy and record loss
-
-            temp_correct, temp_total = get_accuracy(output, y_nat)
-            correct += temp_correct
-            total += temp_total
-            temp_losses.append(loss.item())
-            # prec1 = accuracy(output.data, target)[0]
-            # losses.update(loss.item(), input.size(0))
-            # top1.update(prec1.item(), input.size(0))
-
-            # measure elapsed time
-            # batch_time.update(time.time() - end)
-            # end = time.time()
-
-            # if i % args.print_freq == 0:
-            #     print('Epoch: [{0}][{1}/{2}]\t'
-            #           'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
-            #           'Prec@1 {top1.val:.3f} ({top1.avg:.3f})'.format(
-            #         epoch, i, len(train_loader), batch_time=batch_time,
-            #         data_time=data_time, loss=losses, top1=top1))
-
-            # print(y_nat)
-            # return 0
-        normal_scheduler.step()
-
-        train_losses.append(np.mean(temp_losses))
-        train_accuracies.append(correct / total)
-        model.eval()
-        with torch.no_grad():
-            correct, total = 0, 0
-            for data in testloader:
-                images, labels = data[0].to(device), data[1].to(device)
-                outputs = model(images)
-                temp_correct, temp_total = get_accuracy(outputs, labels)
-                correct += temp_correct
-
-                total += temp_total
-            test_accuracies.append(correct / total)
-        print('loss : ' + str(train_losses[-1]) + ' - train_accuracy : ' + str(
-            train_accuracies[-1]) + '- test_accuracy : ' + str(test_accuracies[-1]))
-        print()
-        torch.save(model.state_dict(), path + '/model.pth')
-
-    # fig, axs = plt.subplots(3, figsize=(12, 12))
-    # axs[0].plot(train_losses)
-    # axs[1].plot(train_accuracies)
-    # axs[2].plot(test_accuracies)
-    # plt.show()
-
-
-# Mohammad: checked, except the black box, everything is clear.
 if __name__ == '__main__':
+    # Currently not using values (lam, N, E) from args.
     parser = argparse.ArgumentParser(description='Define hyperparameters.')
+    # # CIFAR10 Parameters
+    # parser.add_argument('--pre_train', type=str, default='OFF', help='OFF, ON')
+    # parser.add_argument('--dataset', type=str, default='CIFAR10', help='MNIST, CIFAR10')
+    # parser.add_argument('--net_arch', type=str, default='ResNet18', help='Conv2Net, ResNet18, ResNet50')
+    # parser.add_argument('--k', type=int, default=10)
+    # parser.add_argument('--optimizer', type=str, default='sgd', help='adam, sgd')
+    # parser.add_argument('--lr', type=float, default=0.01)
+    # # epoch = 12 for test
+    # parser.add_argument('--epochs', type=int, default=60)
+    # parser.add_argument('--train_directory', type=str, default=".")
+    # parser.add_argument('--resume', type=bool, default=False)
+    # parser.add_argument('--load_model', type=str, default="")
+    # parser.add_argument('--restrict', type=bool, default=False)
+    # lambda_vals = [0.1]
+    # num_maxs = [50]
+    # num_examples = [15]
+
+    # MNIST Parametres
     parser.add_argument('--pre_train', type=str, default='OFF', help='OFF, ON')
-    parser.add_argument('--dataset', type=str, default='CIFAR10', help='MNIST, CIFAR10')
-    # parser.add_argument('--dataset', type=str, default='MNIST', help='MNIST, CIFAR10')
-
-    # parser.add_argument('--net_arch', type=str, default='Conv2Net', help='Conv2Net, ResNet18, ResNet50')
-    parser.add_argument('--net_arch', type=str, default='ResNet18', help='Conv2Net, ResNet18, ResNet50')
-
-    parser.add_argument('--k', type=int, default=10)
-
-    # parser.add_argument('--n_examples', type=int, default=20)
-    # parser.add_argument('--n_max', type=int, default=24)
-    # parser.add_argument('--lambda_val', type=float, default=0.5)
-    # parser.add_argument('--optimizer', type=str, default='adam', help='adam, sgd')
-    parser.add_argument('--optimizer', type=str, default='sgd', help='adam, sgd')
-
-    # sgd
-    # start = 0.1, each 50, 75% : multiply 0.1
-    # parser.add_argument('--lr', type=float, default=0.001)
-    parser.add_argument('--lr', type=float, default=0.01)
-
-    # epoch = 12 for test
-    parser.add_argument('--epochs', type=int, default=60)
+    parser.add_argument('--dataset', type=str, default='MNIST', help='MNIST, CIFAR10')
+    parser.add_argument('--net_arch', type=str, default='Conv2Net', help='Conv2Net, ResNet18, ResNet50')
+    parser.add_argument('--k', type=int, default=15)
+    parser.add_argument('--optimizer', type=str, default='adam', help='adam, sgd')
+    parser.add_argument('--lr', type=float, default=0.001)
+    parser.add_argument('--epochs', type=int, default=100)
     parser.add_argument('--train_directory', type=str, default=".")
     parser.add_argument('--resume', type=bool, default=False)
     parser.add_argument('--load_model', type=str, default="")
     parser.add_argument('--restrict', type=bool, default=False)
-
-    # os.makedir(address)
-
-    # exit(0)
-
-    # Uncomment if attack added.
-    # parser.add_argument('--attack', type=bool, default=False)
-    # parser.add_argument('--attack_batch_num', type=int, default=1)
-
-    # todo
-
-    # Currently not using values from args.
-    # Change These for different datasets.
-
-    # CIFAR10 Values
-    # lambda_vals = [0.5]
-    #
-    # num_maxs = [50, 100]
-    # num_examples = [10, 50]
-
-    # MNIST Values
-    # lambda_vals = [0.1, 0.5, 2, 5]
-    lambda_vals = [0.1]
-
-    num_maxs = [50]
-
-    # decrease num_examples
-    num_examples = [15]
+    batch_size = 512
+    lambda_vals = [0.4]
+    num_maxs = [30]
+    num_examples = [20]
 
     args = parser.parse_args()
 
-    trainloader, testloader, n_classes = utils.dataset_loader(args.dataset, batch_size=512)
-
+    trainloader, testloader, n_classes = utils.dataset_loader(args.dataset, batch_size=batch_size)
     n_channels = next(iter(trainloader))[0].shape[1]
-
     n_corners = 2 ** n_channels
-
     k = args.k
-    # os.makedirs(args.train_directory, exist_ok=True)
 
     pre_train_dir = './pre_trained_models'
     try:
@@ -564,12 +501,9 @@ if __name__ == '__main__':
     except:
         pass
 
-    # if args.pre_train == 'OFF':
-    #     ref_net = utils.net_loader(args.net_arch, n_channels).to(device)
-    #     ref_net.load_state_dict(torch.load(pre_train_dir + '/model2.pth'))
-    # else:
-    #     ref_net = utils.net_loader(args.net_arch, n_channels).to(device)
-    #     pre_train(ref_net, 12, pre_train_dir)
+    if args.pre_train == 'ON':
+        ref_net = utils.net_loader(args.net_arch, n_channels).to(device)
+        pre_train(ref_net, 12, pre_train_dir)
 
     lambda_val, n_max, n_iter = None, None, None
 
@@ -590,15 +524,13 @@ if __name__ == '__main__':
                                                    n_iter))
 
                 net = utils.net_loader(args.net_arch, n_channels)
-                # net.load_state_dict(ref_net.state_dict())
+
+                if args.load_model != "":
+                    net.load_state_dict(torch.load(args.load_model))
                 net = nn.DataParallel(net)
                 net = net.to(device)
 
-                # os.makedirs(train_directory, exist_ok=True)
                 os.makedirs(os.path.join(train_directory, "models"), exist_ok=True)
-
-                # t1 = threading.Thread(target=show_gpu_usage)
-                # t1.start()
 
                 init_epoch, init_batch = 0, 0
 
@@ -619,9 +551,6 @@ if __name__ == '__main__':
                     with open(os.path.join(train_directory, "train_log.csv"), 'w') as csvfile:
                         writer = csv.writer(csvfile)
                         writer.writerow(list(log_info.keys()))
-
-                if args.load_model != "":
-                    net.load_state_dict(torch.load(args.load_model))
 
                 bb = BlackBox_distributer()
 
