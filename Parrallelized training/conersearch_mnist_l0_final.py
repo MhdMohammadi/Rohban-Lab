@@ -249,6 +249,7 @@ def train(net, num_epochs, init_epoch, init_batch, train_dir):
 
             x_nat, y_nat = data[0].to(device), data[1].to(device)
             x_nat = x_nat.permute(0, 2, 3, 1).to(device)
+            print(x_nat.shape)
             optimizer.zero_grad()
 
             adv = attack(x_nat, y_nat)
@@ -320,7 +321,7 @@ def normal_acc():
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Define hyperparameters.')
-    parser.add_argument('--dataset', type=str, default='MNIST', help='MNIST, CIFAR10')
+    parser.add_argument('--dataset', type=str, default='SVHN', help='MNIST, CIFAR10, SVHN')
     parser.add_argument('--net_arch', type=str, default='Conv2Net', help='Conv2Net, ResNet18, ResNet50')
     parser.add_argument('--k', type=int, default=15)
 

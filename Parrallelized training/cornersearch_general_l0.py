@@ -63,24 +63,24 @@ def convert_perturbation(i, sz):
             i = torch.tensor(i)
         return torch.stack((i // 4, (i % 4) // 2, i % 2), dim=-1).to(device)
 
-#
-# def NCHW_to_NHWC(data):
-#     return data.permute(0, 2, 3, 1)
-#
-#
-# def NHWCT_to_NCHW(data):
-#     return data.permute(0, 3, 1, 2)
-#
-#
-# def permute_data(data):
-#     if args.dataset == 'CIFAR10':
-#         return NCHW_to_NHWC(data)
-#
-#
-# def repermute_data(data):
-#     if args.dataset == 'CIFAR10':
-#         return NHCW_to_NCHT(data)
-#
+
+def NCHW_to_NHWC(data):
+    return data.permute(0, 2, 3, 1)
+
+
+def NHWCT_to_NCHW(data):
+    return data.permute(0, 3, 1, 2)
+
+
+def permute_data(data):
+    if args.dataset == 'CIFAR10':
+        return NCHW_to_NHWC(data)
+
+
+def repermute_data(data):
+    if args.dataset == 'CIFAR10':
+        return NHCW_to_NCHT(data)
+
 
 def onepixel_perturbation_logits(orig_x):
     ''' returns logits of all possible perturbations of the images orig_x
@@ -91,21 +91,24 @@ def onepixel_perturbation_logits(orig_x):
     with torch.no_grad():
 
         dims = orig_x.shape
-        pic_size = dims[2] * dims[3]
+        pic_size = dims[1] * dims[2]
         n_perturbed = pic_size * n_corners
 
         logits = torch.zeros(dims[0], n_perturbed, n_classes).to(device)
 
         for i in range(n_corners):
-            pixel_val = convert_perturbation(i, orig_x.shape[1])
-            for j in range(dims[2]):
-                for q in range(dims[3]):
+            pixel_val = convert_perturbation(i, orig_x.shape[-1])
+
+            for j in range(dims[1]):
+                for q in range(dims[2]):
                     perturbed = torch.clone(orig_x)
-                    perturbed = perturbed.permute(0, 2, 3, 1)
                     perturbed[:, j, q] = pixel_val
-                    perturbed = perturbed.permute(0, 3, 1, 2)
+                    # perturbed = transform(perturbed)
+
                     pic_num = pic_size * i + j * dims[1] + q
-                    logits[:, pic_num, :] = forward(perturbed)
+
+                    # logits[:, pic_num, :] = forward(perturbed.permute(0, 3, 1, 2))
+                    logits[:, pic_num, :] = net(perturbed)
 
     return logits
 
@@ -247,7 +250,8 @@ def attack(x_nat, y_nat):
             # Changing perturbations size to avoid overfitting. Preference on lower perturbation size.
             batch_x = npixels_perturbation(x_nat, dist_cl, int(k - i * (k // n_iter)))
 
-            # preds = torch.argmax(forward(batch_x), dim=1)
+            # preds = torch.argmax(forward(batch_x.permute(0, 3, 1, 2)), dim=1)
+            preds = torch.argmax(net(batch_x), dim=1)
 
             adv_indices = torch.nonzero(~torch.eq(preds, y_nat), as_tuple=False).flatten()
 
@@ -301,11 +305,14 @@ def train(net, num_epochs, init_epoch, init_batch, train_dir):
             print("epoch:", init_epoch + epoch, "batch:", i)
 
             x_nat, y_nat = data[0].to(device), data[1].to(device)
+            print(x_nat.shape)
+            x_nat = x_nat.permute(0, 2, 3, 1).to(device)
 
             optimizer.zero_grad()
             adv = attack(x_nat, y_nat)
 
-            outputs = forward(adv)
+            # outputs = forward(adv.permute(0, 3, 1, 2))
+            outputs = net(adv)
             loss = criterion(outputs, y_nat)
             loss.backward()
             optimizer.step()
@@ -350,8 +357,10 @@ def normal_acc():
     with torch.no_grad():
         for data in testloader:
             images, labels = data[0].to(device), data[1].to(device)
+            # images = images.permute(0, 2, 3, 1)
 
-            outputs = forward(images)
+            # outputs = forward(images.permute(0, 3, 1, 2))
+            outputs = net(images)
 
             _, predicted = torch.max(outputs.data, 1)
             total += labels.size(0)
