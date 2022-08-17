@@ -121,7 +121,6 @@ def onepixel_perturbation_logits(orig_x):
                     perturbed[:, j, q] = pixel_val
                     pic_num = pic_size * i + j * dims[1] + q
                     logits[:, pic_num, :] = forward(perturbed)
-                    print(pic_num)
 
     return logits
 
