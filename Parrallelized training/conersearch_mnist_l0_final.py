@@ -168,23 +168,6 @@ def ranker(logit_2, batch_y):
     return ind
 
 
-class BlackBox_distributer(torch.autograd.Function):
-
-    @staticmethod
-    def forward(ctx, logit_2, batch_y):
-        dist = ranker(logit_2, batch_y)
-        ctx.save_for_backward(logit_2, dist)
-        return dist
-
-    @staticmethod
-    def backward(catx, grad_output):
-        global lambda_val
-
-        logit_2, dist = ctx.saved_tensors
-        logit_prime = logit_2 + lambda_val * grad_output
-        dist_prime = ranker(logit_prime)
-        grad = -(dist - dist_prime) / (lambda_val + 1e-8)
-        return grad
 
 
 def attack(x_nat, y_nat):
@@ -248,6 +231,7 @@ def train(net, num_epochs, init_epoch, init_batch, train_dir):
             print("epoch:", init_epoch + epoch, "batch:", i)
 
             x_nat, y_nat = data[0].to(device), data[1].to(device)
+            print(x_nat.shape)
             x_nat = x_nat.permute(0, 2, 3, 1).to(device)
             print(x_nat.shape)
             optimizer.zero_grad()
@@ -324,16 +308,8 @@ if __name__ == '__main__':
     parser.add_argument('--dataset', type=str, default='SVHN', help='MNIST, CIFAR10, SVHN')
     parser.add_argument('--net_arch', type=str, default='Conv2Net', help='Conv2Net, ResNet18, ResNet50')
     parser.add_argument('--k', type=int, default=15)
-
-    # parser.add_argument('--n_examples', type=int, default=20)
-    # parser.add_argument('--n_max', type=int, default=24)
-    # parser.add_argument('--lambda_val', type=float, default=0.5)
     parser.add_argument('--optimizer', type=str, default='adam', help='adam, sgd')
-    # sgd
-    #start = 0.1, each 50, 75% : multiply 0.1
     parser.add_argument('--lr', type=float, default=0.001)
-
-    # epoch = 12 for test
     parser.add_argument('--epochs', type=int, default=40)
     parser.add_argument('--train_directory', type=str, default=".")
     parser.add_argument('--resume', type=bool, default=False)
@@ -342,17 +318,6 @@ if __name__ == '__main__':
     # Uncomment if attack added.
     # parser.add_argument('--attack', type=bool, default=False)
     # parser.add_argument('--attack_batch_num', type=int, default=1)
-
-    # todo
-
-    # Currently not using values from args.
-    # Change These for different datasets.
-
-    # CIFAR10 Values
-    # lambda_vals = [0.5]
-    #
-    # num_maxs = [50, 100]
-    # num_examples = [10, 50]
 
     # MNIST Values
     lambda_vals = [0.5]
@@ -365,8 +330,6 @@ if __name__ == '__main__':
     n_channels = next(iter(trainloader))[0].shape[1]
     n_corners = 2 ** n_channels
     k = args.k
-
-    # os.makedirs(args.train_directory, exist_ok=True)
 
     lambda_val, n_max, n_iter = None, None, None
 
@@ -391,9 +354,6 @@ if __name__ == '__main__':
 
                 # os.makedirs(train_directory, exist_ok=True)
                 os.makedirs(os.path.join(train_directory, "models"), exist_ok=True)
-
-                # t1 = threading.Thread(target=show_gpu_usage)
-                # t1.start()
 
                 init_epoch, init_batch = 0, 0
 

@@ -16,7 +16,6 @@ class Conv2Net(nn.Module):
         self.fc2 = nn.Linear(1024, 10)
 
     def forward(self, x):
-        x = x.permute(0, 3, 1,2)
         x = self.pool(F.relu(self.conv1(x)))
         x = self.pool(F.relu(self.conv2(x)))
 
