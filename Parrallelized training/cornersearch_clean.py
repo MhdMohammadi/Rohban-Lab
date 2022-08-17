@@ -124,7 +124,30 @@ def onepixel_perturbation_logits(orig_x):
 
     return logits
 
+def npixels_perturbation(orig_x, dist, pert_size):
+    '''dist shape: (batch_size, perturbation #)
+    output shape = orig_x shape
+    creates a batch of images (given a batch), each differs pert_size pixels from the original.'''
 
+    with torch.no_grad():
+        ind2 = torch.rand(dist.shape) + 1e-12
+        ind2 = ind2.to(device)
+        ind2 = torch.log(ind2) * (1 / dist)
+
+        batch_x = orig_x.clone()
+        # ind_prime shape: (batch_size, pert_size)
+        ind_prime = torch.topk(ind2, pert_size, 1).indices
+
+        p11, p12, d1 = flat2square(ind_prime, orig_x.shape[1:])
+        d1 = d1.unsqueeze(2).to(device)
+
+        counter = torch.arange(0, orig_x.shape[0])
+
+        # TODO: are p11, p12 arrays? does the line below work?
+        for i in range(orig_x.shape[0]):
+            batch_x[i, p11[i], p12[i]] = d1[i].float()
+
+    return batch_x
 
 
 def attack(x_nat, y_nat):
@@ -138,37 +161,32 @@ def attack(x_nat, y_nat):
     # dist shape = (batch_size, perturbation #, n_classes)
     dist = bb.apply(logit_2, y_nat)
 
-    print(dist)
-    exit(0)
-    # found_adv = torch.zeros(x_nat.shape[0]).to(device)
-    # for cl in range(n_classes):
-    #     print("starting npixels_perturbation for class " + str(cl))
-    #     for i in range(n_iter):
-    #         dist_cl = torch.clone(dist[:, :, cl])
-    #
-    #         # Changin perturbations size to avoid overfitting. Preference on lower perturbation size.
-    #         batch_x = npixels_perturbation(x_nat, dist_cl, int(k - i * (k // n_iter)))
-    #
-    #         # Mohammad: I've changed here
-    #         # Remove permute
-    #         # preds = torch.argmax(net(batch_x.permute(0, 3, 1, 2)), dim=1)
-    #         preds = torch.argmax(net(batch_x), dim=1)
-    #         adv_indices = torch.nonzero(~torch.eq(preds, y_nat), as_tuple=False).flatten()
-    #
-    #         adv[adv_indices] = batch_x[adv_indices]
-    #         found_adv[adv_indices] = 1
-    #
-    # print("Adversarial Examples made.")
-    #
-    # num_of_found = torch.sum(found_adv).item()
-    # batch_size = x_nat.shape[0]
-    # print("found: ", int(num_of_found), "/", batch_size)
-    # adv_acc = (batch_size - num_of_found) / batch_size * 100
-    # print("adv_acc:", adv_acc)
-    #
-    # log_info["train_adv_acc"] = adv_acc
-    #
-    # return adv
+    found_adv = torch.zeros(x_nat.shape[0]).to(device)
+    for cl in range(n_classes):
+        print("starting npixels_perturbation for class " + str(cl))
+        for i in range(n_iter):
+            dist_cl = torch.clone(dist[:, :, cl])
+
+            # Changing perturbations size to avoid overfitting. Preference on lower perturbation size.
+            batch_x = npixels_perturbation(x_nat, dist_cl, int(k - i * (k / n_iter)))
+
+            preds = torch.argmax(forward(batch_x), dim=1)
+            adv_indices = torch.nonzero(~torch.eq(preds, y_nat), as_tuple=False).flatten()
+
+            adv[adv_indices] = batch_x[adv_indices]
+            found_adv[adv_indices] = 1
+
+    print("Adversarial Examples made.")
+
+    num_of_found = torch.sum(found_adv).item()
+    batch_size = x_nat.shape[0]
+    print("found: ", int(num_of_found), "/", batch_size)
+    adv_acc = (batch_size - num_of_found) / batch_size * 100
+    print("adv_acc:", adv_acc)
+
+    log_info["train_adv_acc"] = adv_acc
+
+    return adv
 
 def print_time(message):
     now = datetime.now()
@@ -247,7 +265,7 @@ def train(net, num_epochs, train_dir):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Define hyperparameters.')
-    parser.add_argument('--dataset', type=str, default='CIFAR10', help='MNIST, CIFAR10, SVHN')
+    parser.add_argument('--dataset', type=str, default='MNIST', help='MNIST, CIFAR10, SVHN')
     parser.add_argument('--net_arch', type=str, default='Conv2Net', help='Conv2Net, ResNet18, ResNet50')
     parser.add_argument('--k', type=int, default=15)
     parser.add_argument('--optimizer', type=str, default='adam', help='adam, sgd')
