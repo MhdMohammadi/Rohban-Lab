@@ -164,11 +164,11 @@ def attack(x_nat, y_nat):
     found_adv = torch.zeros(x_nat.shape[0]).to(device)
     for cl in range(n_classes):
         print("starting npixels_perturbation for class " + str(cl))
-        for i in range(n_iter):
+        for i in range(num_example):
             dist_cl = torch.clone(dist[:, :, cl])
 
             # Changing perturbations size to avoid overfitting. Preference on lower perturbation size.
-            batch_x = npixels_perturbation(x_nat, dist_cl, int(k - i * (k / n_iter)))
+            batch_x = npixels_perturbation(x_nat, dist_cl, int(k - i * (k / num_example)))
 
             preds = torch.argmax(forward(batch_x), dim=1)
             adv_indices = torch.nonzero(~torch.eq(preds, y_nat), as_tuple=False).flatten()
