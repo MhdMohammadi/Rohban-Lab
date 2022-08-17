@@ -55,18 +55,18 @@ def ranker(logit_2, batch_y):
 
 
     base_dist = torch.zeros(ind.shape[1]).to(device).float()
-    base_dist[:n_max] = torch.tensor([((2*n_max - 2*i + 1)/n_max**2) for i in range(1, n_max+1)])'''
+    base_dist[:num_max] = torch.tensor([((2*num_max - 2*i + 1)/num_max**2) for i in range(1, num_max+1)])'''
 
     print_time("Just before topk (Randint)")
 
     # Please check this
-    sorted = torch.topk(input=logit_3, k=n_max, dim=1, largest=False, sorted=True).indices.to(device)
+    sorted = torch.topk(input=logit_3, k=num_max, dim=1, largest=False, sorted=True).indices.to(device)
 
     print_time("topk done. Now creating distributions.")
 
     ind = torch.zeros(logit_3.shape).to(device)
-    base_dist = torch.zeros(n_max).to(device).float()
-    base_dist = torch.tensor([((2 * n_max - 2 * i + 1) / n_max ** 2) for i in range(1, n_max + 1)]).to(device)
+    base_dist = torch.zeros(num_max).to(device).float()
+    base_dist = torch.tensor([((2 * num_max - 2 * i + 1) / num_max ** 2) for i in range(1, num_max + 1)]).to(device)
 
     for i in range(ind.shape[0]):
         for j in range(ind.shape[2]):
