@@ -21,7 +21,7 @@ def forward(x):
 # TODO READ THIS CODE!!
 def ranker(logit_2, batch_y):
     '''output shape = logit_2 shape = (batch_size, perturbation #, n_classes) '''
-    global n_corners, n_max
+    global n_corners, num_max
 
     counter = torch.arange(0, logit_2.shape[0])
 
