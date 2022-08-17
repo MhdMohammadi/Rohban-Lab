@@ -18,6 +18,63 @@ def forward(x):
     ## HWC to CHW
     return net(x.permute(0, 3, 1, 2))
 
+# TODO READ THIS CODE!!
+def ranker(logit_2, batch_y):
+    '''output shape = logit_2 shape = (batch_size, perturbation #, n_classes) '''
+    global n_corners, n_max
+
+    counter = torch.arange(0, logit_2.shape[0])
+
+    # t1 shape: (batch_size, perturbation #)
+    t1 = torch.clone(logit_2[counter, :, batch_y])
+
+    logit_2[counter, :, batch_y] = -1000.0 * torch.ones(logit_2.shape[1]).to(device)
+
+    t2 = torch.max(logit_2, dim=2).values
+    t3 = t1 - t2
+
+    # In logit_3, Lower score indicates better fooling.
+    logit_3 = torch.unsqueeze(t1, 2).repeat(1, 1, n_classes) - logit_2
+    logit_3[counter, :, batch_y] = t3
+
+    # Make sure a single pixel (with different perturbations) is not selected more than once.
+    for i in range(logit_3.shape[0]):
+        for j in range(logit_3.shape[2]):
+            temp = logit_3[i, :, j].reshape(n_corners, -1)
+            best_pert = torch.ones(temp.shape).to(device)
+            best_idx = torch.argmin(temp, dim=0)
+
+            counter = torch.arange(0, temp.shape[1])
+            best_pert[best_idx, counter] = 0
+            logit_3[i, torch.where(best_pert)[0], j] = 1000.0
+
+    # Not so efficient
+    ''' sorted = torch.argsort(logit_3, axis=1)
+
+    ind  = torch.zeros(logit_3.shape).to(device)
+
+
+    base_dist = torch.zeros(ind.shape[1]).to(device).float()
+    base_dist[:n_max] = torch.tensor([((2*n_max - 2*i + 1)/n_max**2) for i in range(1, n_max+1)])'''
+
+    print_time("Just before topk (Randint)")
+
+    # Please check this
+    sorted = torch.topk(input=logit_3, k=n_max, dim=1, largest=False, sorted=True).indices.to(device)
+
+    print_time("topk done. Now creating distributions.")
+
+    ind = torch.zeros(logit_3.shape).to(device)
+    base_dist = torch.zeros(n_max).to(device).float()
+    base_dist = torch.tensor([((2 * n_max - 2 * i + 1) / n_max ** 2) for i in range(1, n_max + 1)]).to(device)
+
+    for i in range(ind.shape[0]):
+        for j in range(ind.shape[2]):
+            ind[i, sorted[i, :, j], j] = base_dist
+
+    print("Distributions made. Black Box forward pass ended.")
+
+    return ind
 
 class BlackBox_distributer(torch.autograd.Function):
 
@@ -67,6 +124,9 @@ def onepixel_perturbation_logits(orig_x):
                     print(pic_num)
 
     return logits
+
+
+
 
 def attack(x_nat, y_nat):
     global k
