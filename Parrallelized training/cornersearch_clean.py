@@ -64,6 +64,7 @@ def onepixel_perturbation_logits(orig_x):
                     perturbed[:, j, q] = pixel_val
                     pic_num = pic_size * i + j * dims[1] + q
                     logits[:, pic_num, :] = forward(perturbed)
+                    print(pic_num)
 
     return logits
 
@@ -73,11 +74,13 @@ def attack(x_nat, y_nat):
     adv = torch.clone(x_nat).to(device)
     logit_2 = onepixel_perturbation_logits(x_nat)
     print_time("one pixel perturbations made. Now into Black Box Solver's forward pass.")
-    #
-    # # Creates the distribution
-    # # dist shape = (batch_size, perturbation #, n_classes)
-    # dist = bb.apply(logit_2, y_nat)
-    #
+
+    # Creates the distribution
+    # dist shape = (batch_size, perturbation #, n_classes)
+    dist = bb.apply(logit_2, y_nat)
+
+    print(dist)
+    exit(0)
     # found_adv = torch.zeros(x_nat.shape[0]).to(device)
     # for cl in range(n_classes):
     #     print("starting npixels_perturbation for class " + str(cl))
@@ -193,6 +196,9 @@ if __name__ == '__main__':
     parser.add_argument('--epochs', type=int, default=40)
     parser.add_argument('--train_directory', type=str, default=".")
     parser.add_argument('--load_model', type=str, default="")
+    parser.add_argument('--batch_size', type=int, default=8)
+    parser.add_argument('--num_workers', type=int, default=8)
+
     # parser.add_argument('--resume', type=bool, default=False)
 
     # MNIST Values
@@ -203,7 +209,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # Load train and test loader
-    trainloader, testloader, n_classes = utils.dataset_loader(args.dataset)
+    trainloader, testloader, n_classes = utils.dataset_loader(args.dataset, args.batch_size, args.num_workers)
     n_channels = next(iter(trainloader))[0].shape[1]
     n_corners = 2 ** n_channels
 
