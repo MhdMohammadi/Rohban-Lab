@@ -234,9 +234,9 @@ def train(net, num_epochs, train_dir):
 
             outputs = forward(adv)
             loss = criterion(outputs, y_nat)
-            optimizer.zero_grad()
-
             loss.backward()
+
+            optimizer.zero_grad()
             optimizer.step()
 
             steps += 1
