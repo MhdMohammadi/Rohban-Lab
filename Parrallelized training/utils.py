@@ -28,7 +28,7 @@ def dataset_loader(dataset, batch_size=512, num_workers=8):
 
         trainset = torchvision.datasets.MNIST(root='./data', train=True, download=True, transform=transform)
         testset = torchvision.datasets.MNIST(root='./data', train=False, download=True, transform=transform)
-        trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True,
+        trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=False,
                                                   num_workers=num_workers)
         testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
         n_classes = 10
