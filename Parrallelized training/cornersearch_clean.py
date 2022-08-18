@@ -232,11 +232,12 @@ def train(net, num_epochs, train_dir):
             with torch.no_grad():
                 adv = attack(x_nat, y_nat)
 
-            outputs = forward(adv)
+            with torch.no_grad():
+                outputs = forward(adv)
+
             loss = criterion(outputs, y_nat)
             loss.backward()
 
-            optimizer.zero_grad()
             optimizer.step()
 
             steps += 1
