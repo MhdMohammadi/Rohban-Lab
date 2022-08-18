@@ -12,7 +12,7 @@ from datetime import datetime
 import utils
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-log_info = {"epoch": 0, "batch": 0, "train_adv_acc": 0, "train_clean_acc": 0, "train_loss": 0, "time": 0}
+log_info = {"epoch": 0, "batch": 0, "train_adv_acc": 0, "test_clean_acc": 0, "train_loss": 0, "time": 0}
 
 def forward(x):
     ## HWC to CHW
@@ -229,7 +229,8 @@ def train(net, num_epochs, train_dir):
 
             optimizer.zero_grad()
 
-            adv = attack(x_nat, y_nat)
+            with torch.no_grad():
+                adv = attack(x_nat, y_nat)
 
             outputs = forward(adv)
             loss = criterion(outputs, y_nat)
@@ -279,7 +280,7 @@ def test_clean_acc():
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
 
-    print("normal acc:\t", 100 * correct / total)
+    print("test clean acc:\t", 100 * correct / total)
 
     return 100 * correct / total
 
