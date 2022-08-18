@@ -232,48 +232,58 @@ def train(net, num_epochs, train_dir):
             optimizer.zero_grad()
 
             adv = attack(x_nat, y_nat)
-    #
-    #         # Mohammad: I've changed here
-    #         # Remove Permute
-    #         # outputs = net(adv.permute(0, 3, 1, 2))
-    #         outputs = net(adv)
-    #         loss = criterion(outputs, y_nat)
-    #
-    #         loss.backward()
-    #         optimizer.step()
-    #
-    #         steps += 1
-    #         running_loss += loss.item()
-    #
-    #         print("training loss:", loss.item())
-    #         net.eval()
-    #
-    #         clean_acc = normal_acc()
-    #         log_info["train_clean_acc"] = clean_acc
-    #         log_info["epoch"] = epoch + init_epoch
-    #         log_info["batch"] = i
-    #         log_info["train_loss"] = loss.item()
-    #         log_info["time"] = (datetime.now() - start_time)
-    #
-    #         with open(os.path.join(train_dir, "train_log.csv"), 'a') as csvfile:
-    #             writer = csv.writer(csvfile)
-    #             writer.writerow(list(log_info.values()))
-    #
-    #         # Uncomment for saving after each batch. Remember to save models after each batch.
-    #         # with open(os.path.join(train_dir, "train_info"), 'wb') as file_:
-    #         # 	pickle.dump([init_epoch + epoch, i], file_)
-    #         # 	file_.close()
-    #
-    #         print("\n")
-    #
-    #     path = os.path.join(train_dir, "models/e_" + str(init_epoch + epoch) + ".pth")
-    #     torch.save(net.state_dict(), path)
-    #
-    #     with open(os.path.join(train_dir, "train_info"), 'wb') as file_:
-    #         pickle.dump([init_epoch + epoch], file_)
-    #         file_.close()
-    #
-    #     print("model saved!\n")
+
+            outputs = foward(adv)
+            loss = criterion(outputs, y_nat)
+
+            loss.backward()
+            optimizer.step()
+
+            steps += 1
+            running_loss += loss.item()
+
+            print("training loss:", loss.item())
+            net.eval()
+
+            clean_acc = test_clean_acc()
+            log_info["test_clean_acc"] = clean_acc
+            log_info["epoch"] = epoch
+            log_info["batch"] = i
+            log_info["train_loss"] = loss.item()
+            log_info["time"] = (datetime.now() - start_time)
+
+            with open(os.path.join(train_dir, "train_log.csv"), 'a') as csvfile:
+                writer = csv.writer(csvfile)
+                writer.writerow(list(log_info.values()))
+
+            print("\n")
+
+        path = os.path.join(train_dir, "models/e_" + str(init_epoch + epoch) + ".pth")
+        torch.save(net.state_dict(), path)
+
+        with open(os.path.join(train_dir, "train_info"), 'wb') as file_:
+            pickle.dump([init_epoch + epoch], file_)
+            file_.close()
+
+        print("model saved!\n")
+
+def test_clean_acc():
+    correct = 0
+    total = 0
+    with torch.no_grad():
+        for data in testloader:
+            images, labels = data[0].to(device), data[1].to(device)
+            images = images.permute(0, 2, 3, 1)
+
+            outputs = forward(images)
+
+            _, predicted = torch.max(outputs.data, 1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+
+    print("normal acc:\t", 100 * correct / total)
+
+    return 100 * correct / total
 
 
 if __name__ == '__main__':
