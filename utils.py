@@ -10,9 +10,6 @@ import torch.optim as optim
 import torchvision.models as torch_models
 
 import models
-import resnet
-import resnet2
-
 
 # TODO: Add cifar & HMNIST
 def dataset_loader(dataset, batch_size=512, num_workers=8):
