@@ -324,7 +324,7 @@ if __name__ == '__main__':
                 os.makedirs(train_directory, exist_ok=True)
                 os.makedirs(os.path.join(train_directory, "models"), exist_ok=True)
 
-                net = utils.net_loader(args.net_arch, n_channels)
+                net = utils.net_loader(args.net_arch, n_channels, args.dataset)
                 net = nn.DataParallel(net)
                 net = net.to(device)
 
