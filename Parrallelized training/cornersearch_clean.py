@@ -236,7 +236,7 @@ def train(net, num_epochs, train_dir):
             loss = criterion(outputs, y_nat)
 
             loss.backward()
-            optimizer.step()
+            # optimizer.step()
 
             steps += 1
             running_loss += loss.item()
