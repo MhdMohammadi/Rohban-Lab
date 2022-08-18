@@ -233,7 +233,7 @@ def train(net, num_epochs, train_dir):
 
             adv = attack(x_nat, y_nat)
 
-            outputs = foward(adv)
+            outputs = forward(adv)
             loss = criterion(outputs, y_nat)
 
             loss.backward()
