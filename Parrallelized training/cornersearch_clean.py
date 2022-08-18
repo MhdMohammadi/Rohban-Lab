@@ -232,6 +232,8 @@ def train(net, num_epochs, train_dir):
             adv = attack(x_nat, y_nat)
             print(adv.requires_grad)
 
+            optimizer.zero_grad()
+
             outputs = forward(adv)
 
             loss = criterion(outputs, y_nat)
