@@ -119,10 +119,23 @@ def onepixel_perturbation_logits(orig_x):
                 for q in range(dims[2]):
                     perturbed = torch.clone(orig_x)
                     perturbed[:, j, q] = pixel_val
-                    pic_num = pic_size * i + j * dims[1] + q
+                    pic_num = pic_size * i + j * dims[2] + q
                     logits[:, pic_num, :] = forward(perturbed)
 
     return logits
+
+# TODO: Check whether it works ok
+def flat2square(ind, im_shape):
+    ''' returns the position and the perturbation given the index of an image
+      of the batch of all the possible perturbations '''
+    im_size = im_shape[0] * im_shape[1]
+
+    t = ind // im_size
+    c = (ind % im_size) % im_shape[1]
+    r = ((ind % im_size) - c) // im_shape[1]
+
+    # row, columnt, perturbation #
+    return r, c, t
 
 def npixels_perturbation(orig_x, dist, pert_size):
     '''dist shape: (batch_size, perturbation #)
