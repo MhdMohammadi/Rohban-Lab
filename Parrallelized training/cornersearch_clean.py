@@ -287,7 +287,7 @@ def test_clean_acc():
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Define hyperparameters.')
-    parser.add_argument('--dataset', type=str, default='MNIST', help='MNIST, CIFAR10, SVHN')
+    parser.add_argument('--dataset', type=str, default='SVHN', help='MNIST, CIFAR10, SVHN')
     parser.add_argument('--net_arch', type=str, default='Conv2Net', help='Conv2Net, ResNet18, ResNet50')
     parser.add_argument('--k', type=int, default=15)
     parser.add_argument('--optimizer', type=str, default='adam', help='adam, sgd')
