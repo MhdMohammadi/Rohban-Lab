@@ -14,9 +14,11 @@ import utils
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 log_info = {"epoch": 0, "batch": 0, "train_adv_acc": 0, "test_clean_acc": 0, "train_loss": 0, "time": 0}
 
+
 def forward(x):
     ## HWC to CHW
     return net(x.permute(0, 3, 1, 2))
+
 
 # TODO READ THIS CODE!!
 def ranker(logit_2, batch_y):
@@ -76,6 +78,7 @@ def ranker(logit_2, batch_y):
 
     return ind
 
+
 class BlackBox_distributer(torch.autograd.Function):
 
     @staticmethod
@@ -93,6 +96,7 @@ class BlackBox_distributer(torch.autograd.Function):
         dist_prime = ranker(logit_prime)
         grad = -(dist - dist_prime) / (lambda_val + 1e-8)
         return grad
+
 
 # orig_x has to be in HWC format
 def onepixel_perturbation_logits(orig_x):
@@ -124,6 +128,7 @@ def onepixel_perturbation_logits(orig_x):
 
     return logits
 
+
 # TODO: Check whether it works ok
 def flat2square(ind, im_shape):
     ''' returns the position and the perturbation given the index of an image
@@ -136,6 +141,7 @@ def flat2square(ind, im_shape):
 
     # row, columnt, perturbation #
     return r, c, t
+
 
 def npixels_perturbation(orig_x, dist, pert_size):
     '''dist shape: (batch_size, perturbation #)
@@ -201,10 +207,12 @@ def attack(x_nat, y_nat):
 
     return adv
 
+
 def print_time(message):
     now = datetime.now()
     current_time = now.strftime("%H:%M:%S")
     print(message, current_time)
+
 
 def train(net, num_epochs, train_dir):
     global criterion
@@ -215,7 +223,6 @@ def train(net, num_epochs, train_dir):
         running_loss = 0.0
 
         for i, data in enumerate(trainloader, 0):
-
             print_time(f'Batch {str(i)} started.')
             start_time = datetime.now()
 
@@ -257,14 +264,15 @@ def train(net, num_epochs, train_dir):
 
             print("\n")
 
-        path = os.path.join(train_dir, "models/e_" + str(init_epoch + epoch) + ".pth")
+        path = os.path.join(train_dir, "models/e_" + str(epoch) + ".pth")
         torch.save(net.state_dict(), path)
 
         with open(os.path.join(train_dir, "train_info"), 'wb') as file_:
-            pickle.dump([init_epoch + epoch], file_)
+            pickle.dump([epoch], file_)
             file_.close()
 
         print("model saved!\n")
+
 
 def test_clean_acc():
     correct = 0
@@ -319,9 +327,11 @@ if __name__ == '__main__':
         for num_max in num_maxs:
             for num_example in num_examples:
 
-                print_time(f'execution for (lambda, num_max, num_examples)= ({str(lambda_val)}, {str(num_max)}, {str(num_example)})')
+                print_time(
+                    f'execution for (lambda, num_max, num_examples)= ({str(lambda_val)}, {str(num_max)}, {str(num_example)})')
 
-                train_directory = os.path.join(args.train_directory, f'l_{str(lambda_val)}_N_{str(num_max)}_e_{str(num_example)}')
+                train_directory = os.path.join(args.train_directory,
+                                               f'l_{str(lambda_val)}_N_{str(num_max)}_e_{str(num_example)}')
                 os.makedirs(train_directory, exist_ok=True)
                 os.makedirs(os.path.join(train_directory, "models"), exist_ok=True)
 
