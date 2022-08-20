@@ -287,10 +287,10 @@ def test_clean_acc():
             outputs = forward(images)
 
             _, predicted = torch.max(outputs.data, 1)
-            if not flag:
-                print(labels)
-                print(predicted)
-                flag = True
+            # if not flag:
+            #     print(labels)
+            #     print(predicted)
+            #     flag = True
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
 
