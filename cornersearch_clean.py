@@ -230,8 +230,6 @@ def train(net, num_epochs, train_dir):
 
             # C H W
             x_nat, y_nat = data[0].to(device), data[1].to(device)
-            print(x_nat.max(), x_nat.min())
-            print(y_nat)
 
             # H W C
             x_nat = x_nat.permute(0, 2, 3, 1).to(device)
@@ -279,6 +277,7 @@ def train(net, num_epochs, train_dir):
 def test_clean_acc():
     correct = 0
     total = 0
+    flag = False
     with torch.no_grad():
         for data in testloader:
             images, labels = data[0].to(device), data[1].to(device)
@@ -287,6 +286,10 @@ def test_clean_acc():
             outputs = forward(images)
 
             _, predicted = torch.max(outputs.data, 1)
+            if not flag:
+                print(labels)
+                print(predicted)
+                flag = True
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
 
