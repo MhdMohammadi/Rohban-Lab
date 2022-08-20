@@ -218,11 +218,12 @@ def train(net, num_epochs, train_dir):
     global criterion
 
     for epoch in range(num_epochs):
-        net.train()
         steps = 0
         running_loss = 0.0
 
         for i, data in enumerate(trainloader, 0):
+            net.train()
+
             print_time(f'Batch {str(i)} started.')
             start_time = datetime.now()
 
