@@ -288,6 +288,7 @@ def test_clean_acc():
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
 
+    print(correct, total)
     print("test clean acc:\t", 100 * correct / total)
 
     return 100 * correct / total
