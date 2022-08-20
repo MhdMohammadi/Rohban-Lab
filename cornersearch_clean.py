@@ -230,6 +230,7 @@ def train(net, num_epochs, train_dir):
 
             # C H W
             x_nat, y_nat = data[0].to(device), data[1].to(device)
+            print(x_nat.max(), x_nat.min())
 
             # H W C
             x_nat = x_nat.permute(0, 2, 3, 1).to(device)
