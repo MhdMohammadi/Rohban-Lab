@@ -88,7 +88,7 @@ class BlackBox_distributer(torch.autograd.Function):
         return dist
 
     @staticmethod
-    def backward(catx, grad_output):
+    def backward(ctx, grad_output):
         global lambda_val
 
         logit_2, dist = ctx.saved_tensors
