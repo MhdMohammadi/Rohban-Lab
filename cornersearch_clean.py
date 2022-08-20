@@ -237,8 +237,7 @@ def train(net, num_epochs, train_dir):
 
             optimizer.zero_grad()
 
-            # adv = attack(x_nat, y_nat)
-            adv = x_nat
+            adv = attack(x_nat, y_nat)
 
             outputs = forward(adv)
 
