@@ -76,7 +76,7 @@ def dataset_loader(dataset, batch_size=512, num_workers=8):
         transform = transforms.Compose([transforms.ToTensor()])
 
         trainset = torchvision.datasets.SVHN(root='./data', split='train', download=True, transform=transform)
-        testset = torchvision.datasets.SVHN(root='./data', split='test', download=True, transform=transform)
+        testset = torchvision.datasets.SVHN(root='./data', split='train', download=True, transform=transform)
         trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True,
                                                   num_workers=num_workers)
         testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
