@@ -24,8 +24,8 @@ from sparsefool import sparsefool
 import foolbox
 from foolbox.models import PyTorchModel
 
-import resnet2
-from robustbench.utils import load_model
+# import resnet2
+# from robustbench.utils import load_model
 
 
 batch_size = 128
@@ -113,11 +113,9 @@ def normal_acc():
     with torch.no_grad():
         for data in testloader:
             images, labels = data[0].to(device), data[1].to(device)
-            images = images.permute(0, 2, 3, 1)
+            print(images.shape)
 
-            # Remove permute
-            outputs = net(images.permute(0, 3, 1, 2))
-            # outputs = net(images)
+            outputs = net(images)
 
             _, predicted = torch.max(outputs.data, 1)
             total += labels.size(0)
@@ -127,15 +125,12 @@ def normal_acc():
 
     return 100 * correct / total
 
-
+# TODO: torch.eval
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Define hyperparameters.')
-    # parser.add_argument('--kappa', type=float, default=0.8)
     parser.add_argument('--k', type=int, default=10)
     parser.add_argument('--n_examples', type=int, default=1000)
     parser.add_argument('--n_max', type=int, default=24)
-    # parser.add_argument('--load_model', type=str, default="")
-    # parser.add_argument('--', type=int, default=1000)
     parser.add_argument('--attack', type=str, default="CS")
     parser.add_argument('--max_iter', type=int, default=30)
     parser.add_argument('--lambda_', type=float, default=1.)
@@ -154,7 +149,7 @@ if __name__ == '__main__':
     #         'sparsity': args.k,
     #     	'size_incr': 5}
 
-    net = torch_models.resnet18(num_classes=10)
+    # net = torch_models.resnet18(num_classes=10)
     # net = torch_models.resnet18(num_classes=10)
 
     net = nn.DataParallel(net)
@@ -214,30 +209,30 @@ if __name__ == '__main__':
          'num_examples': 20}
     ]
 
-    model_paths = ["../pre_trained_models/final_pretrained.pth"]
+    model_paths = ["../saved_models/SVHN_K10_e_26.pth"]
     batches = [0, 1, 2]
 
     for path in model_paths:
         # net = nn.DataParallel(net)
         net.load_state_dict(torch.load(path))
 
-        net = load_model(model_name='Rade2021Helper_R18_ddpm', threat_model='L2')
-        net.to(device)
+        # net = load_model(model_name='Rade2021Helper_R18_ddpm', threat_model='L2')
+        # net.to(device)
 
         net.eval()
         print(normal_acc())
-        batch_num = 0
-        for data in testloader:
-            print(f'batch number {batch_num} has been started');
+        # batch_num = 0
+        # for data in testloader:
+        #     print(f'batch number {batch_num} has been started');
 
-            images, labels = data[0], data[1]
+        #     images, labels = data[0], data[1]
 
-            correct, total = adv_batch_acc(images, labels, attack_args)
+        #     correct, total = adv_batch_acc(images, labels, attack_args)
 
-            file_name = args.attack + ".csv"
-            with open(file_name, 'a') as csvfile:
-                writer = csv.writer(csvfile)
-                if batch_num == 0:
-                    writer.writerow(["batch_num", "correct", "total"])
-                writer.writerow([batch_num, correct, total])
-            batch_num += 1
+        #     file_name = args.attack + ".csv"
+        #     with open(file_name, 'a') as csvfile:
+        #         writer = csv.writer(csvfile)
+        #         if batch_num == 0:
+        #             writer.writerow(["batch_num", "correct", "total"])
+        #         writer.writerow([batch_num, correct, total])
+        #     batch_num += 1
