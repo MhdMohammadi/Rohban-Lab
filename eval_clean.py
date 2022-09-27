@@ -24,7 +24,6 @@ from sparsefool import sparsefool
 import foolbox
 from foolbox.models import PyTorchModel
 from utils import net_loader
-# from utils import net_loader
 
 # import resnet2
 # from robustbench.utils import load_model
@@ -115,7 +114,7 @@ def normal_acc():
     with torch.no_grad():
         for data in testloader:
             images, labels = data[0].to(device), data[1].to(device)
-            print(images.shape)
+            # print(images.shape)
 
             outputs = net(images)
 
@@ -151,47 +150,46 @@ if __name__ == '__main__':
     #         'sparsity': args.k,
     #     	'size_incr': 5}
 
-    # net = torch_models.resnet18(num_classes=10)
-    # net = torch_models.resnet18(num_classes=10)
+    net = net_loader('Conv2Net', 3, 'SVHN')
+   
+    net = nn.DataParallel(net)
+    net = net.to(device)
 
-    # net = nn.DataParallel(net)
-    # net = net.to(device)
+    if args.attack == 'CS':
 
-    # if args.attack == 'CS':
-
-    #     attack_args = {'attack': 'CS',
-    #                    'type_attack': 'L0',
-    #                    'n_iter': 1000,
-    #                    'n_max': args.n_max,
-    #                    'kappa': -1,
-    #                    'epsilon': -1,
-    #                    'sparsity': args.k,
-    #                    'size_incr': 1}
-
+        attack_args = {'attack': 'CS',
+                       'type_attack': 'L0',
+                       'n_iter': 1000,
+                       'n_max': args.n_max,
+                       'kappa': -1,
+                       'epsilon': -1,
+                       'sparsity': args.k,
+                       'size_incr': 1}
 
 
-    # elif args.attack == 'PGD':
 
-    #     attack_args = {'attack': 'PGD',
-    #                    'type_attack': 'L0',
-    #                    'n_restarts': 5,
-    #                    'num_steps': 100,
-    #                    'step_size': 120000.0 / 255.0,
-    #                    'kappa': -1,
-    #                    'epsilon': -1,
-    #                    'sparsity': args.k}
+    elif args.attack == 'PGD':
 
-    # elif args.attack == 'SF':
+        attack_args = {'attack': 'PGD',
+                       'type_attack': 'L0',
+                       'n_restarts': 5,
+                       'num_steps': 100,
+                       'step_size': 120000.0 / 255.0,
+                       'kappa': -1,
+                       'epsilon': -1,
+                       'sparsity': args.k}
 
-    #     attack_args = {'attack': 'SF',
-    #                    'max_iter': args.max_iter,
-    #                    'lambda_': args.lambda_,
-    #                    'sparsity': args.k}
+    elif args.attack == 'SF':
 
-    # elif args.attack == 'PA':
+        attack_args = {'attack': 'SF',
+                       'max_iter': args.max_iter,
+                       'lambda_': args.lambda_,
+                       'sparsity': args.k}
 
-    #     attack_args = {'attack': 'PA',
-    #                    'sparsity': args.k}
+    elif args.attack == 'PA':
+
+        attack_args = {'attack': 'PA',
+                       'sparsity': args.k}
 
     # designated_model = [
     #     {'lambda_val': 0.5,
@@ -211,30 +209,28 @@ if __name__ == '__main__':
     #      'num_examples': 20}
     # ]
 
-    # model_paths = ["../saved_models/SVHN_K10_e_26.pth"]
-    # batches = [0, 1, 2]
+    model_paths = ["saved_models/SVHN_K10_e_26.pth"]
 
-    # for path in model_paths:
-    #     # net = nn.DataParallel(net)
-    #     net.load_state_dict(torch.load(path))
+    for path in model_paths:
+        net.load_state_dict(torch.load(path))
 
     #     # net = load_model(model_name='Rade2021Helper_R18_ddpm', threat_model='L2')
     #     # net.to(device)
 
-    #     net.eval()
-    #     print(normal_acc())
-    #     # batch_num = 0
-    #     # for data in testloader:
-    #     #     print(f'batch number {batch_num} has been started');
+        net.eval()
+        print(normal_acc())
+        batch_num = 0
+        for data in testloader:
+            print(f'batch number {batch_num} has been started');
 
-    #     #     images, labels = data[0], data[1]
+            images, labels = data[0], data[1]
 
-    #     #     correct, total = adv_batch_acc(images, labels, attack_args)
+            correct, total = adv_batch_acc(images, labels, attack_args)
 
-    #     #     file_name = args.attack + ".csv"
-    #     #     with open(file_name, 'a') as csvfile:
-    #     #         writer = csv.writer(csvfile)
-    #     #         if batch_num == 0:
-    #     #             writer.writerow(["batch_num", "correct", "total"])
-    #     #         writer.writerow([batch_num, correct, total])
-    #     #     batch_num += 1
+            file_name = args.attack + ".csv"
+            with open(file_name, 'a') as csvfile:
+                writer = csv.writer(csvfile)
+                if batch_num == 0:
+                    writer.writerow(["batch_num", "correct", "total"])
+                writer.writerow([batch_num, correct, total])
+            batch_num += 1
