@@ -230,7 +230,6 @@ def train(net, num_epochs, train_dir):
 
             # C H W
             x_nat, y_nat = data[0].to(device), data[1].to(device)
-            print(x_nat.min(), x_nat.max(), y_nat.min(), y_nat.max())
 
             # H W C
             x_nat = x_nat.permute(0, 2, 3, 1).to(device)
@@ -238,8 +237,8 @@ def train(net, num_epochs, train_dir):
             optimizer.zero_grad()
 
             # TODO
-        #   adv = attack(x_nat, y_nat)
-            adv = x_nat
+            adv = attack(x_nat, y_nat)
+            # adv = x_nat
 
             outputs = forward(adv)
 
