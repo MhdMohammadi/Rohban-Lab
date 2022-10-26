@@ -162,7 +162,7 @@ if __name__ == '__main__':
     if args.attack == 'CS':
         attack_args = {'attack': 'CS',
                        'type_attack': 'L0',
-                       'n_iter': 1000,
+                       'n_iter': 30,
                        'n_max': args.n_max,
                        'kappa': -1,
                        'epsilon': -1,
