@@ -140,7 +140,7 @@ if __name__ == '__main__':
     parser.add_argument('--lambda_', type=float, default=1.)
     parser.add_argument('--batch_size', type=int, default=512)
     parser.add_argument('--num_workers', type=int, default=8)
-
+    
     args = parser.parse_args()
 
     channels = 1 if args.dataset == 'MNIST' else 3
@@ -210,7 +210,7 @@ if __name__ == '__main__':
     # #      'num_examples': 20}
     # # ]
 
-    model_paths = ["pretrained_models/SVHN_K10_e_26.pth"]
+    model_paths = ["pretrained_models/e_0.pth"]
 
     for path in model_paths:
         net.load_state_dict(torch.load(path))
