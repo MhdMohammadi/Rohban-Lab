@@ -17,7 +17,7 @@ import torch.nn as nn
 # import csv
 import argparse
 import os
-from utils import net_loader
+from utils import net_loader, dataset_loader
 
 # import cornersearch_attacks_pt
 # import pgd_attacks_pt
@@ -148,6 +148,8 @@ if __name__ == '__main__':
     net = net_loader(args.net_arch, channels, args.dataset)   
     net = nn.DataParallel(net)
     net = net.to(device)
+
+    trainloader, testloader, n_classes = dataset_loader(args.dataset, args.batch_size, args.num_workers)
 
 
     # if args.load_model != "":
