@@ -219,13 +219,13 @@ if __name__ == '__main__':
 
     model_paths = ["pretrained_models/SVHN_K10_e_26.pth"]
 
-    # for path in model_paths:
-    #     net.load_state_dict(torch.load(path))
+    for path in model_paths:
+        net.load_state_dict(torch.load(path))
 
     # #     # net = load_model(model_name='Rade2021Helper_R18_ddpm', threat_model='L2')
     # #     # net.to(device)
 
-    #     net.eval()
+        net.eval()
     #     print(normal_acc())
     #     batch_num = 0
     #     for data in testloader:
