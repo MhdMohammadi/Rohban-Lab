@@ -1,10 +1,8 @@
 # import numpy as np
-import torch
 
 # import torchvision
 # import torchvision.transforms as transforms
 
-import torch.nn as nn
 # import torch.nn.functional as F
 
 # import torchvision.models as torch_models
@@ -14,12 +12,15 @@ import torch.nn as nn
 # # import threading
 # # import time
 # import pickle
-# import csv
+import csv
 import argparse
 import os
 from utils import net_loader, dataset_loader
 
-# import cornersearch_attacks_pt
+import torch
+import torch.nn as nn
+
+import cornersearch_attacks_pt
 # import pgd_attacks_pt
 # from sparsefool import sparsefool
 # import foolbox
@@ -52,61 +53,61 @@ num_workers = 8
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# def adv_batch_acc(images, labels, args):
-#     net.eval()
-#     correct = 0
+def adv_batch_acc(images, labels, args):
+    net.eval()
+    correct = 0
 
-#     total = labels.size(0)
+    total = labels.size(0)
 
-#     if args['attack'] == 'CS':
-#         images = images.permute(0, 2, 3, 1)
-#         with torch.no_grad():
-#             images, labels = images.numpy(), labels.numpy()
-#             attack = cornersearch_attacks_pt.CSattack(net, args)
-#             correct = attack.perturb(images, labels)
+    if args['attack'] == 'CS':
+        images = images.permute(0, 2, 3, 1)
+        with torch.no_grad():
+            images, labels = images.numpy(), labels.numpy()
+            attack = cornersearch_attacks_pt.CSattack(net, args)
+            correct = attack.perturb(images, labels)
 
-#     elif args['attack'] == 'PGD':
-#         images = images.permute(0, 2, 3, 1)
-#         with torch.no_grad():
-#             images, labels = images.numpy(), labels.numpy()
-#             attack = pgd_attacks_pt.PGDattack(net, args)
-#             correct = attack.perturb(images, labels)
+    # elif args['attack'] == 'PGD':
+    #     images = images.permute(0, 2, 3, 1)
+    #     with torch.no_grad():
+    #         images, labels = images.numpy(), labels.numpy()
+    #         attack = pgd_attacks_pt.PGDattack(net, args)
+    #         correct = attack.perturb(images, labels)
 
-#     elif args['attack'] == 'SF':
-#         images, labels = images.to(device), labels.to(device)
-#         for i in range(images.shape[0]):
-#             print(i)
-#             im = images[i:i + 1]
-#             lb = torch.zeros(images[0:1].shape, device=device)
-#             ub = torch.ones(images[0:1].shape, device=device)
+    # elif args['attack'] == 'SF':
+    #     images, labels = images.to(device), labels.to(device)
+    #     for i in range(images.shape[0]):
+    #         print(i)
+    #         im = images[i:i + 1]
+    #         lb = torch.zeros(images[0:1].shape, device=device)
+    #         ub = torch.ones(images[0:1].shape, device=device)
 
-#             x_adv, r, pred_label, fool_label, loops = sparsefool(im, net, lb, ub, args['lambda_'], args['max_iter'],
-#                                                                  device=device)
+    #         x_adv, r, pred_label, fool_label, loops = sparsefool(im, net, lb, ub, args['lambda_'], args['max_iter'],
+    #                                                              device=device)
 
-#             l0_dist = torch.sum(r != 0).item()
-#             if fool_label == labels[i] or (pred_label == labels[i] and l0_dist > args['sparsity']):
-#                 correct += 1
+    #         l0_dist = torch.sum(r != 0).item()
+    #         if fool_label == labels[i] or (pred_label == labels[i] and l0_dist > args['sparsity']):
+    #             correct += 1
 
-#     elif args['attack'] == 'PA':
+    # elif args['attack'] == 'PA':
 
-#         fmodel = PyTorchModel(net, bounds=(0, 1), device=device, num_classes=10)
-#         attack = foolbox.attacks.PointwiseAttack(fmodel)
+    #     fmodel = PyTorchModel(net, bounds=(0, 1), device=device, num_classes=10)
+    #     attack = foolbox.attacks.PointwiseAttack(fmodel)
 
-#         with torch.no_grad():
-#             images, labels = images.numpy(), labels.numpy()
-#             adv = attack(images, labels)
+    #     with torch.no_grad():
+    #         images, labels = images.numpy(), labels.numpy()
+    #         adv = attack(images, labels)
 
-#             l0_dist = np.sum((adv - images) != 0, axis=(1, 2, 3))
-#             imperceptable_adv = (l0_dist <= args['sparsity'])
+    #         l0_dist = np.sum((adv - images) != 0, axis=(1, 2, 3))
+    #         imperceptable_adv = (l0_dist <= args['sparsity'])
 
-#             images[imperceptable_adv] = adv[imperceptable_adv]
+    #         images[imperceptable_adv] = adv[imperceptable_adv]
 
-#             outputs = net(torch.tensor(images).to(device))
-#             _, predicted = torch.max(outputs.data, 1)
+    #         outputs = net(torch.tensor(images).to(device))
+    #         _, predicted = torch.max(outputs.data, 1)
 
-#             correct = (predicted == torch.tensor(labels).to(device)).sum().item()
+    #         correct = (predicted == torch.tensor(labels).to(device)).sum().item()
 
-#     return correct, total
+    return correct, total
 
 
 def normal_acc():
@@ -133,7 +134,7 @@ if __name__ == '__main__':
     parser.add_argument('--net_arch', type=str, default='Conv2Net', help='Conv2Net, ResNet18, ResNet50')
     parser.add_argument('--k', type=int, default=10)
     parser.add_argument('--n_examples', type=int, default=1000)
-    parser.add_argument('--n_max', type=int, default=24)
+    parser.add_argument('--n_max', type=int, default=50)
     parser.add_argument('--attack', type=str, default='CS', help='CS, PGD, SF, PA')
     parser.add_argument('--max_iter', type=int, default=30)
     parser.add_argument('--lambda_', type=float, default=1.)
@@ -145,7 +146,7 @@ if __name__ == '__main__':
     channels = 1 if args.dataset == 'MNIST' else 3
 
     net = net_loader(args.net_arch, channels, args.dataset)   
-    # net = nn.DataParallel(net)
+    net = nn.DataParallel(net)
     net = net.to(device)
     
     trainloader, testloader, n_classes = dataset_loader(args.dataset, args.batch_size, args.num_workers)
@@ -219,18 +220,18 @@ if __name__ == '__main__':
 
         net.eval()
         print(normal_acc())
-    #     batch_num = 0
-    #     for data in testloader:
-    #         print(f'batch number {batch_num} has been started');
+        batch_num = 0
+        for data in testloader:
+            print(f'batch number {batch_num} has been started');
 
-    #         images, labels = data[0], data[1]
+            images, labels = data[0], data[1]
 
-    #         correct, total = adv_batch_acc(images, labels, attack_args)
+            correct, total = adv_batch_acc(images, labels, attack_args)
 
-    #         file_name = args.attack + ".csv"
-    #         with open(file_name, 'a') as csvfile:
-    #             writer = csv.writer(csvfile)
-    #             if batch_num == 0:
-    #                 writer.writerow(["batch_num", "correct", "total"])
-    #             writer.writerow([batch_num, correct, total])
-    #         batch_num += 1
+            file_name = args.attack + ".csv"
+            with open(file_name, 'a') as csvfile:
+                writer = csv.writer(csvfile)
+                if batch_num == 0:
+                    writer.writerow(["batch_num", "correct", "total"])
+                writer.writerow([batch_num, correct, total])
+            batch_num += 1
