@@ -134,7 +134,7 @@ if __name__ == '__main__':
     parser.add_argument('--k', type=int, default=10)
     parser.add_argument('--n_examples', type=int, default=1000)
     parser.add_argument('--n_max', type=int, default=24)
-    parser.add_argument('--attack', type=str, default="CS")
+    parser.add_argument('--attack', type=str, default='CS', help='CS, PGD, SF, PA')
     parser.add_argument('--max_iter', type=int, default=30)
     parser.add_argument('--lambda_', type=float, default=1.)
     parser.add_argument('--batch_size', type=int, default=512)
@@ -145,13 +145,10 @@ if __name__ == '__main__':
     channels = 1 if args.dataset == 'MNIST' else 3
 
     net = net_loader(args.net_arch, channels, args.dataset)   
-    net = nn.DataParallel(net)
+    # net = nn.DataParallel(net)
     net = net.to(device)
     
     trainloader, testloader, n_classes = dataset_loader(args.dataset, args.batch_size, args.num_workers)
-
-    # if args.load_model != "":
-    # 	net.load_state_dict(torch.load(args.load_model))
 
     # attack_args = {'type_attack': 'L0+sigma',
     #         'n_iter': 1000,
@@ -161,19 +158,15 @@ if __name__ == '__main__':
     #         'sparsity': args.k,
     #     	'size_incr': 5}
 
-
-    # if args.attack == 'CS':
-
-    #     attack_args = {'attack': 'CS',
-    #                    'type_attack': 'L0',
-    #                    'n_iter': 1000,
-    #                    'n_max': args.n_max,
-    #                    'kappa': -1,
-    #                    'epsilon': -1,
-    #                    'sparsity': args.k,
-    #                    'size_incr': 1}
-
-
+    if args.attack == 'CS':
+        attack_args = {'attack': 'CS',
+                       'type_attack': 'L0',
+                       'n_iter': 1000,
+                       'n_max': args.n_max,
+                       'kappa': -1,
+                       'epsilon': -1,
+                       'sparsity': args.k,
+                       'size_incr': 1}
 
     # elif args.attack == 'PGD':
 
