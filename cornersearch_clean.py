@@ -16,7 +16,7 @@ log_info = {"epoch": 0, "batch": 0, "train_adv_acc": 0, "test_clean_acc": 0, "tr
 
 
 def forward(x):
-    ## HWC to CHW
+    # HWC to CHW
     return net(x.permute(0, 3, 1, 2))
 
 
@@ -176,7 +176,7 @@ def attack(x_nat, y_nat):
     logit_2 = onepixel_perturbation_logits(x_nat)
     print_time("one pixel perturbations made. Now into Black Box Solver's forward pass.")
 
-    # Creates the distribution
+    # Create the distribution
     # dist shape = (batch_size, perturbation #, n_classes)
     dist = bb.apply(logit_2, y_nat)
 
@@ -237,7 +237,9 @@ def train(net, num_epochs, train_dir):
 
             optimizer.zero_grad()
 
-            adv = attack(x_nat, y_nat)
+            # TODO
+        #   adv = attack(x_nat, y_nat)
+            adv = x_nat
 
             outputs = forward(adv)
 
@@ -304,7 +306,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Define hyperparameters.')
     parser.add_argument('--dataset', type=str, default='SVHN', help='MNIST, CIFAR10, SVHN')
     parser.add_argument('--net_arch', type=str, default='Conv2Net', help='Conv2Net, ResNet18, ResNet50')
-    parser.add_argument('--k', type=int, default=15)
+    parser.add_argument('--k', type=int, default=15) # max number of manipulated pixels
     parser.add_argument('--optimizer', type=str, default='adam', help='adam, sgd')
     parser.add_argument('--lr', type=float, default=0.001)
     parser.add_argument('--epochs', type=int, default=40)
@@ -312,13 +314,12 @@ if __name__ == '__main__':
     parser.add_argument('--load_model', type=str, default="")
     parser.add_argument('--batch_size', type=int, default=128)
     parser.add_argument('--num_workers', type=int, default=8)
-
     # parser.add_argument('--resume', type=bool, default=False)
 
     # MNIST Values
-    lambda_vals = [0.5]
-    num_maxs = [50]
-    num_examples = [30]
+    lambda_vals = [0.5] # TODO
+    num_maxs = [50] # TODO
+    num_examples = [30] # TODO
 
     args = parser.parse_args()
 
