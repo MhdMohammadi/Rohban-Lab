@@ -148,9 +148,8 @@ if __name__ == '__main__':
     net = net_loader(args.net_arch, channels, args.dataset)   
     net = nn.DataParallel(net)
     net = net.to(device)
-
+    
     trainloader, testloader, n_classes = dataset_loader(args.dataset, args.batch_size, args.num_workers)
-
 
     # if args.load_model != "":
     # 	net.load_state_dict(torch.load(args.load_model))
@@ -218,7 +217,7 @@ if __name__ == '__main__':
     # #      'num_examples': 20}
     # # ]
 
-    # model_paths = ["saved_models/SVHN_K10_e_26.pth"]
+    model_paths = ["pretrained_models/SVHN_K10_e_26.pth"]
 
     # for path in model_paths:
     #     net.load_state_dict(torch.load(path))

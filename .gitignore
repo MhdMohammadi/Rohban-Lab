@@ -2,8 +2,6 @@ models
 mnist*
 data*
 __pycache_*
-*.pth
 Parrallelized training/l*
 *.csv
 .idea/*
-*.pt
