@@ -109,23 +109,22 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 #     return correct, total
 
 
-# def normal_acc():
-#     correct = 0
-#     total = 0
-#     with torch.no_grad():
-#         for data in testloader:
-#             images, labels = data[0].to(device), data[1].to(device)
-#             # print(images.shape)
+def normal_acc():
+    correct = 0
+    total = 0
+    with torch.no_grad():
+        for data in testloader:
+            images, labels = data[0].to(device), data[1].to(device)
+            
+            outputs = net(images)
 
-#             outputs = net(images)
+            _, predicted = torch.max(outputs.data, 1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
 
-#             _, predicted = torch.max(outputs.data, 1)
-#             total += labels.size(0)
-#             correct += (predicted == labels).sum().item()
+    print("normal acc:\t", 100 * correct / total)
 
-#     print("normal acc:\t", 100 * correct / total)
-
-#     return 100 * correct / total
+    return 100 * correct / total
 
 # TODO: torch.eval
 if __name__ == '__main__':
@@ -226,7 +225,7 @@ if __name__ == '__main__':
     # #     # net.to(device)
 
         net.eval()
-    #     print(normal_acc())
+        print(normal_acc())
     #     batch_num = 0
     #     for data in testloader:
     #         print(f'batch number {batch_num} has been started');
