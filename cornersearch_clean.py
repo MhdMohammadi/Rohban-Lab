@@ -134,7 +134,7 @@ def flat2square(ind, im_shape):
     ''' returns the position and the perturbation given the index of an image
       of the batch of all the possible perturbations '''
     im_size = im_shape[0] * im_shape[1]
-
+    print (im_size, ind)
     t = ind // im_size
     c = (ind % im_size) % im_shape[1]
     r = ((ind % im_size) - c) // im_shape[1]
