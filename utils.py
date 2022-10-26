@@ -16,18 +16,11 @@ import copy
 def dataset_loader(dataset, batch_size=512, num_workers=8):
     if dataset == 'MNIST':
 
-        # if data == 'mnist':
-        #     transforms_channel = transforms.Lambda(lambda x: x.repeat(3, 1, 1))
-        #
-        # elif data == 'svhn' or data == 'cifar10':
-        #     transforms_channel = transforms.Lambda(lambda x: x)
-
         transform = transforms.Compose([transforms.ToTensor()])
 
         trainset = torchvision.datasets.MNIST(root='./data', train=True, download=True, transform=transform)
         testset = torchvision.datasets.MNIST(root='./data', train=False, download=True, transform=transform)
-        trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=False,
-                                                  num_workers=num_workers)
+        trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
         testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
         n_classes = 10
 
@@ -67,9 +60,8 @@ def dataset_loader(dataset, batch_size=512, num_workers=8):
         #     trainset.data = trainset.data[mask]
         #     trainset.targets = np.array(trainset.targets)[mask].tolist()
 
+        trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
         testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
-        trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True,
-                                                  num_workers=num_workers)
 
         n_classes = 10
 
@@ -78,8 +70,7 @@ def dataset_loader(dataset, batch_size=512, num_workers=8):
 
         trainset = torchvision.datasets.SVHN(root='./data', split='train', download=True, transform=transform)
         testset = torchvision.datasets.SVHN(root='./data', split='test', download=True, transform=transform)
-        trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True,
-                                                  num_workers=num_workers)
+        trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True,  num_workers=num_workers)
         testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
         n_classes = 10
 
