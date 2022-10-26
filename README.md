@@ -1,2 +1,2 @@
 # Rohban-Lab
-My current project which is about L0 norm robustness against CornerSearch attack types.
+Adverserial Learning using Cornersearch Attack with L0 norm.
