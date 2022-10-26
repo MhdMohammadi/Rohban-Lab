@@ -140,7 +140,7 @@ if __name__ == '__main__':
     parser.add_argument('--lambda_', type=float, default=1.)
     parser.add_argument('--batch_size', type=int, default=512)
     parser.add_argument('--num_workers', type=int, default=8)
-    parser.add_argument('--model_name', type=str, default='SVHN_K10_e_26.pt')
+    parser.add_argument('--model_name', type=str, default='SVHN_K10_e_26.pth')
     
     
     args = parser.parse_args()
