@@ -204,6 +204,7 @@ def attack(x_nat, y_nat):
     print("adv_acc:", adv_acc)
 
     log_info["train_adv_acc"] = adv_acc
+    print(f'adv acc : {adv_acc}')
 
     return adv
 
@@ -319,7 +320,7 @@ if __name__ == '__main__':
     # MNIST Values
     lambda_vals = [0.5] # TODO
     num_maxs = [50] # TODO
-    num_examples = [30] # TODO
+    num_examples = [30] # #iterations for finding adversarial samples
 
     args = parser.parse_args()
 
