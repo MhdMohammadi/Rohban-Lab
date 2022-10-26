@@ -201,8 +201,6 @@ def attack(x_nat, y_nat):
     batch_size = x_nat.shape[0]
     print("found: ", int(num_of_found), "/", batch_size)
     adv_acc = (batch_size - num_of_found) / batch_size * 100
-    print("adv_acc:", adv_acc)
-
     log_info["train_adv_acc"] = adv_acc
     print(f'adv acc : {adv_acc}')
 
@@ -232,6 +230,7 @@ def train(net, num_epochs, train_dir):
 
             # C H W
             x_nat, y_nat = data[0].to(device), data[1].to(device)
+            print(x_nat.min(), x_nat.max(), y_nat.min(), y_nat.max())
 
             # H W C
             x_nat = x_nat.permute(0, 2, 3, 1).to(device)
