@@ -2,8 +2,9 @@
 import scipy.io
 import numpy as np
 import torch
+import torchvision
 from utils_pt import get_logits, get_predictions, save_adversarial_data
-
+import os
 
 def onepixel_perturbation(attack, orig_x, pos, sigma):
     ''' returns a batch with the possible perturbations of the pixel in position pos '''
@@ -263,5 +264,13 @@ class CSattack():
 
         print(fl_success)
         print(adv.shape)
+        
+        print('-- start storing the adversarial data --')
+        os.makedirs('adversarial_images', exist_ok=True)
+        for i in range(adv.shape[0]):
+            torchvision.save_image(adv[i], f'adversarial_images/img_{i}_pixel_{pixels_changed[i]}.jpg')
+        print('-- the batch is successfully stored --')
+            
+            
 
         return np.sum(corr_pred)
