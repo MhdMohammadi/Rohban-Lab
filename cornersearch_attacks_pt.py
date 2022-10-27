@@ -268,7 +268,7 @@ class CSattack():
         print('-- start storing the adversarial data --')
         os.makedirs('adversarial_images', exist_ok=True)
         for i in range(adv.shape[0]):
-            torchvision.utils.save_image(adv[i], f'adversarial_images/img_{i}_pixel_{pixels_changed[i]}.jpg')
+            np.save(f'adversarial_images/img_{i}_pixel_{pixels_changed[i]}.jpg', adv[i])
         print('-- the batch is successfully stored --')
             
             
