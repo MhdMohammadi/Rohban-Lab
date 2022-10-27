@@ -152,10 +152,10 @@ if __name__ == '__main__':
                        'lambda_': args.lambda_,
                        'sparsity': args.k}
 
-    # elif args.attack == 'PA':
+    elif args.attack == 'PA':
 
-    #     attack_args = {'attack': 'PA',
-    #                    'sparsity': args.k}
+        attack_args = {'attack': 'PA',
+                       'sparsity': args.k}
 
     model_paths = [f"trained_models/{args.model_name}"]
 
