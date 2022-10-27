@@ -22,7 +22,7 @@ import torch.nn as nn
 
 import cornersearch_attacks_pt
 import pgd_attacks_pt
-# from sparsefool import sparsefool
+from sparsefool import sparsefool
 # import foolbox
 # from foolbox.models import PyTorchModel
 # from utils import net_loader
@@ -73,20 +73,20 @@ def adv_batch_acc(images, labels, args):
             attack = pgd_attacks_pt.PGDattack(net, args)
             correct = attack.perturb(images, labels)
 
-    # elif args['attack'] == 'SF':
-    #     images, labels = images.to(device), labels.to(device)
-    #     for i in range(images.shape[0]):
-    #         print(i)
-    #         im = images[i:i + 1]
-    #         lb = torch.zeros(images[0:1].shape, device=device)
-    #         ub = torch.ones(images[0:1].shape, device=device)
+    elif args['attack'] == 'SF':
+        images, labels = images.to(device), labels.to(device)
+        for i in range(images.shape[0]):
+            print(i)
+            im = images[i:i + 1]
+            lb = torch.zeros(images[0:1].shape, device=device)
+            ub = torch.ones(images[0:1].shape, device=device)
 
-    #         x_adv, r, pred_label, fool_label, loops = sparsefool(im, net, lb, ub, args['lambda_'], args['max_iter'],
-    #                                                              device=device)
+            x_adv, r, pred_label, fool_label, loops = sparsefool(im, net, lb, ub, args['lambda_'], args['max_iter'],
+                                                                 device=device)
 
-    #         l0_dist = torch.sum(r != 0).item()
-    #         if fool_label == labels[i] or (pred_label == labels[i] and l0_dist > args['sparsity']):
-    #             correct += 1
+            l0_dist = torch.sum(r != 0).item()
+            if fool_label == labels[i] or (pred_label == labels[i] and l0_dist > args['sparsity']):
+                correct += 1
 
     # elif args['attack'] == 'PA':
 
@@ -133,7 +133,6 @@ if __name__ == '__main__':
     parser.add_argument('--dataset', type=str, default='SVHN', help='MNIST, CIFAR10, SVHN')
     parser.add_argument('--net_arch', type=str, default='Conv2Net', help='Conv2Net, ResNet18, ResNet50')
     parser.add_argument('--k', type=int, default=10)
-    parser.add_argument('--n_examples', type=int, default=1000)
     parser.add_argument('--n_max', type=int, default=50)
     parser.add_argument('--attack', type=str, default='CS', help='CS, PGD, SF, PA')
     parser.add_argument('--max_iter', type=int, default=30)
@@ -182,12 +181,12 @@ if __name__ == '__main__':
                        'epsilon': -1,
                        'sparsity': args.k}
 
-    # elif args.attack == 'SF':
+    elif args.attack == 'SF':
 
-    #     attack_args = {'attack': 'SF',
-    #                    'max_iter': args.max_iter,
-    #                    'lambda_': args.lambda_,
-    #                    'sparsity': args.k}
+        attack_args = {'attack': 'SF',
+                       'max_iter': args.max_iter,
+                       'lambda_': args.lambda_,
+                       'sparsity': args.k}
 
     # elif args.attack == 'PA':
 
