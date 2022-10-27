@@ -1,17 +1,3 @@
-# import numpy as np
-
-# import torchvision
-# import torchvision.transforms as transforms
-
-# import torch.nn.functional as F
-
-# import torchvision.models as torch_models
-
-# # import torch.optim as optim
-# # import GPUtil
-# # import threading
-# # import time
-# import pickle
 from tqdm import tqdm
 import csv
 import argparse
@@ -24,33 +10,11 @@ import torch.nn as nn
 import cornersearch_attacks_pt
 import pgd_attacks_pt
 from sparsefool import sparsefool
-# import foolbox
-# from foolbox.models import PyTorchModel
-# from utils import net_loader
-
-# import resnet2
-# from robustbench.utils import load_model
-
+import foolbox
+from foolbox.models import PyTorchModel
 
 batch_size = 128
 num_workers = 8
-
-# transform = transforms.Compose([transforms.ToTensor()])
-# trainset = torchvision.datasets.MNIST(root='./data', train=True,
-#                                       download=True, transform=transform)
-# trainloader = torch.utils.data.DataLoader(trainset, batch_size=512,
-# shuffle=True, num_workers=8)
-
-# transform_test = transforms.Compose([
-#     transforms.ToTensor(),
-    # transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
-# ])
-# testset = torchvision.datasets.CIFAR10(root='../data', train=False, download=True, transform=transform_test)
-# testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=8)
-
-# transform = transforms.Compose([transforms.ToTensor()])
-# testset = torchvision.datasets.SVHN(root='./data', split='test', download=True, transform=transform)
-# testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -88,24 +52,24 @@ def adv_batch_acc(images, labels, args):
             if fool_label == labels[i] or (pred_label == labels[i] and l0_dist > args['sparsity']):
                 correct += 1
 
-    # elif args['attack'] == 'PA':
+    elif args['attack'] == 'PA':
 
-    #     fmodel = PyTorchModel(net, bounds=(0, 1), device=device, num_classes=10)
-    #     attack = foolbox.attacks.PointwiseAttack(fmodel)
+        fmodel = PyTorchModel(net, bounds=(0, 1), device=device, num_classes=10)
+        attack = foolbox.attacks.PointwiseAttack(fmodel)
 
-    #     with torch.no_grad():
-    #         images, labels = images.numpy(), labels.numpy()
-    #         adv = attack(images, labels)
+        with torch.no_grad():
+            images, labels = images.numpy(), labels.numpy()
+            adv = attack(images, labels)
 
-    #         l0_dist = np.sum((adv - images) != 0, axis=(1, 2, 3))
-    #         imperceptable_adv = (l0_dist <= args['sparsity'])
+            l0_dist = np.sum((adv - images) != 0, axis=(1, 2, 3))
+            imperceptable_adv = (l0_dist <= args['sparsity'])
 
-    #         images[imperceptable_adv] = adv[imperceptable_adv]
+            images[imperceptable_adv] = adv[imperceptable_adv]
 
-    #         outputs = net(torch.tensor(images).to(device))
-    #         _, predicted = torch.max(outputs.data, 1)
+            outputs = net(torch.tensor(images).to(device))
+            _, predicted = torch.max(outputs.data, 1)
 
-    #         correct = (predicted == torch.tensor(labels).to(device)).sum().item()
+            correct = (predicted == torch.tensor(labels).to(device)).sum().item()
 
     return correct, total
 
