@@ -271,6 +271,7 @@ class CSattack():
         for i in range(adv.shape[0]):
             plt.imsave(f'adversarial_images/img_{i}_pixel_{pixels_changed[i]}.jpg', adv[i])
             plt.imsave(f'adversarial_images/img_{i}.jpg', x_nat[i])
+            print(pixels_changed[i] - x_nat[i])
         print('-- the batch is successfully stored --')
             
             
