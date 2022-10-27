@@ -66,12 +66,12 @@ def adv_batch_acc(images, labels, args):
             attack = cornersearch_attacks_pt.CSattack(net, args)
             correct = attack.perturb(images, labels)
 
-    # elif args['attack'] == 'PGD':
-    #     images = images.permute(0, 2, 3, 1)
-    #     with torch.no_grad():
-    #         images, labels = images.numpy(), labels.numpy()
-    #         attack = pgd_attacks_pt.PGDattack(net, args)
-    #         correct = attack.perturb(images, labels)
+    elif args['attack'] == 'PGD':
+        images = images.permute(0, 2, 3, 1)
+        with torch.no_grad():
+            images, labels = images.numpy(), labels.numpy()
+            attack = pgd_attacks_pt.PGDattack(net, args)
+            correct = attack.perturb(images, labels)
 
     # elif args['attack'] == 'SF':
     #     images, labels = images.to(device), labels.to(device)
@@ -171,16 +171,16 @@ if __name__ == '__main__':
                        'sparsity': args.k,
                        'size_incr': 1}
 
-    # elif args.attack == 'PGD':
+    elif args.attack == 'PGD':
 
-    #     attack_args = {'attack': 'PGD',
-    #                    'type_attack': 'L0',
-    #                    'n_restarts': 5,
-    #                    'num_steps': 100,
-    #                    'step_size': 120000.0 / 255.0,
-    #                    'kappa': -1,
-    #                    'epsilon': -1,
-    #                    'sparsity': args.k}
+        attack_args = {'attack': 'PGD',
+                       'type_attack': 'L0',
+                       'n_restarts': 5,
+                       'num_steps': 100,
+                       'step_size': 120000.0 / 255.0,
+                       'kappa': -1,
+                       'epsilon': -1,
+                       'sparsity': args.k}
 
     # elif args.attack == 'SF':
 
@@ -194,31 +194,10 @@ if __name__ == '__main__':
     #     attack_args = {'attack': 'PA',
     #                    'sparsity': args.k}
 
-    # # designated_model = [
-    # #     {'lambda_val': 0.5,
-    # #      'num_max': 24,
-    # #      'num_examples': 20},
-
-    # #     {'lambda_val': 0.5,
-    # #      'num_max': 50,
-    # #      'num_examples': 30},
-
-    # #     {'lambda_val': 0.5,
-    # #      'num_max': 24,
-    # #      'num_examples': 10},
-
-    # #     {'lambda_val': 0.4,
-    # #      'num_max': 30,
-    # #      'num_examples': 20}
-    # # ]
-
     model_paths = [f"pretrained_models/{args.model_name}"]
 
     for path in model_paths:
         net.load_state_dict(torch.load(path))
-
-    # #     # net = load_model(model_name='Rade2021Helper_R18_ddpm', threat_model='L2')
-    # #     # net.to(device)
 
         net.eval()
         print(normal_acc())
