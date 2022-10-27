@@ -6,6 +6,7 @@ from utils import net_loader, dataset_loader
 
 import torch
 import torch.nn as nn
+import numpy as np
 
 import cornersearch_attacks_pt
 import pgd_attacks_pt
