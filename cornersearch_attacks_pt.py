@@ -270,9 +270,9 @@ class CSattack():
         os.makedirs('adversarial_images', exist_ok=True)
         for i in range(adv.shape[0]):
             adv[i][10] = 0
-            plt.imsave(f'adversarial_images/img_{i}_pixel_{pixels_changed[i]}.jpg', adv[i])
-            plt.imsave(f'adversarial_images/img_{i}.jpg', x_nat[i])
-            print((np.abs(adv[i] - x_nat[i]) > 1e-10).sum())
+            plt.imsave(f'adversarial_images/img_{i}_pixel_{pixels_changed[i]}.svg', adv[i])
+            plt.imsave(f'adversarial_images/img_{i}.svg', x_nat[i])
+            # print((np.abs(adv[i] - x_nat[i]) > 1e-10).sum())
         print('-- the batch is successfully stored --')
             
             
