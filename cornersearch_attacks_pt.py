@@ -269,8 +269,8 @@ class CSattack():
         print('-- start storing the adversarial data --')
         os.makedirs('adversarial_images', exist_ok=True)
         for i in range(adv.shape[0]):
-            plt.imsave(f'adversarial_images/img_{i}_pixel_{pixels_changed[i]}.jpg', adv[i])
-            plt.imsave(f'adversarial_images/img_{i}.jpg', x_nat[i])
+            # plt.imsave(f'adversarial_images/img_{i}_pixel_{pixels_changed[i]}.jpg', adv[i])
+            # plt.imsave(f'adversarial_images/img_{i}.jpg', x_nat[i])
             print(pixels_changed[i].min(), pixels_changed.max(), x_nat.min(), x_nat.max())
         print('-- the batch is successfully stored --')
             
