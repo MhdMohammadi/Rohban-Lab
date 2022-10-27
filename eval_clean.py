@@ -21,7 +21,7 @@ import torch
 import torch.nn as nn
 
 import cornersearch_attacks_pt
-# import pgd_attacks_pt
+import pgd_attacks_pt
 # from sparsefool import sparsefool
 # import foolbox
 # from foolbox.models import PyTorchModel
