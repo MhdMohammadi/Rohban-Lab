@@ -12,6 +12,7 @@
 # # import threading
 # # import time
 # import pickle
+from tqdm import tqdm
 import csv
 import argparse
 import os
@@ -75,8 +76,7 @@ def adv_batch_acc(images, labels, args):
 
     elif args['attack'] == 'SF':
         images, labels = images.to(device), labels.to(device)
-        for i in range(images.shape[0]):
-            print(i)
+        for i in tqdm(range(images.shape[0])):
             im = images[i:i + 1]
             lb = torch.zeros(images[0:1].shape, device=device)
             ub = torch.ones(images[0:1].shape, device=device)
