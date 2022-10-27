@@ -261,4 +261,7 @@ class CSattack():
         print('Robust accuracy at {} pixels: {:.2f}%'.format(self.k, np.sum(corr_pred) / x_nat.shape[0] * 100.0))
         print('Maximum perturbation size: {:.5f}'.format(np.amax(np.abs(adv - x_nat))))
 
+        print(fl_success)
+        print(adv.shape)
+
         return np.sum(corr_pred)
