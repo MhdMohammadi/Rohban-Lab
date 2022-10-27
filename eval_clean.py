@@ -194,7 +194,7 @@ if __name__ == '__main__':
     #     attack_args = {'attack': 'PA',
     #                    'sparsity': args.k}
 
-    model_paths = [f"pretrained_models/{args.model_name}"]
+    model_paths = [f"trained_models/{args.model_name}"]
 
     for path in model_paths:
         net.load_state_dict(torch.load(path))
