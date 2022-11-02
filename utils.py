@@ -84,6 +84,8 @@ def net_loader(net_arch, channels=1, dataset='MNIST'):
         return torch_models.resnet18(num_classes=10)
     elif net_arch == 'ResNet50':
         return resnet.ResNet50()
+    elif net_arch == 'PreArcResNet18':
+        return models.PreActResNet18(num_classes=10)
     else:
         print("No such model exists.")
     return None
