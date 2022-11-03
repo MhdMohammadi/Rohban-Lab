@@ -98,7 +98,7 @@ def normal_acc():
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Define hyperparameters.')
     parser.add_argument('--dataset', type=str, default='SVHN', help='MNIST, CIFAR10, SVHN')
-    parser.add_argument('--net_arch', type=str, default='Conv2Net', help='Conv2Net, ResNet18, ResNet50')
+    parser.add_argument('--net_arch', type=str, default='Conv2Net', help='Conv2Net, ResNet18, ResNet50, PreArcResNet18')
     parser.add_argument('--k', type=int, default=10)
     parser.add_argument('--n_max', type=int, default=50)
     parser.add_argument('--attack', type=str, default='CS', help='CS, PGD, SF, PA')
