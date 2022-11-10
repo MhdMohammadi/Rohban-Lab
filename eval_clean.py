@@ -3,6 +3,7 @@ import csv
 import argparse
 import os
 from utils import net_loader, dataset_loader
+from utils_pt import get_predictions
 
 import torch
 import torch.nn as nn
@@ -82,13 +83,12 @@ def normal_acc():
     total = 0
     with torch.no_grad():
         for data in testloader:
-            images, labels = data[0].to(device), data[1].to(device)
+            images, labels = data[0].permute(0, 2, 3, 1).numpy(), data[1].numpy()
             
-            outputs = net(images)
+            predictions = get_predictions(net, images, labels)
 
-            _, predicted = torch.max(outputs.data, 1)
-            total += labels.size(0)
-            correct += (predicted == labels).sum().item()
+            total += labels.shape[0]
+            correct += predictions.sum()
 
     print("normal acc:\t", 100 * correct / total)
 

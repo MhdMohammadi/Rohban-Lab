@@ -7,11 +7,20 @@ import numpy as np
 import os
 # import matplotlib.pyplot as plt
 
+transform_test = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+    ])
+
+def normalize(x):
+    return transform_test(x)          
+    # return x
+
 def get_logits(model, x_nat):
     x = torch.from_numpy(x_nat).permute(0, 3, 1, 2).float()
 
     with torch.no_grad():
-        output = model(x.cuda())
+        output = model(normalize(x).cuda())
 
     return output.cpu().numpy()
 
@@ -32,7 +41,7 @@ def get_predictions(model, x_nat, y_nat):
     x = torch.from_numpy(x_nat).permute(0, 3, 1, 2).float()
     y = torch.from_numpy(y_nat)
     with torch.no_grad():
-        output = model(x.cuda())
+        output = model(normalize(x).cuda())
     return (output.cpu().max(dim=-1)[1] == y).numpy()
 
 
@@ -42,7 +51,7 @@ def get_predictions_and_gradients(model, x_nat, y_nat):
     y = torch.from_numpy(y_nat)
 
     with torch.enable_grad():
-        output = model(x.cuda())
+        output = model(normalize(x).cuda())
         loss = nn.CrossEntropyLoss()(output, y.cuda())
 
     grad = torch.autograd.grad(loss, x)[0]
