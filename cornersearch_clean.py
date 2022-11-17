@@ -105,26 +105,27 @@ def onepixel_perturbation_logits(orig_x):
     '''output shape: (batch_size, perturbation #, n_classes)'''
     global n_classes, n_corners
 
-    with torch.no_grad():
+    # TODO
+    # with torch.no_grad():
 
-        dims = orig_x.shape
-        pic_size = dims[1] * dims[2]
-        n_perturbed = pic_size * n_corners
+    dims = orig_x.shape
+    pic_size = dims[1] * dims[2]
+    n_perturbed = pic_size * n_corners
 
-        logits = torch.zeros(dims[0], n_perturbed, n_classes).to(device)
+    logits = torch.zeros(dims[0], n_perturbed, n_classes).to(device)
 
-        for i in range(n_corners):
-            if orig_x.shape[-1] == 1:
-                pixel_val = int(i)
-            elif orig_x.shape[-1] == 3:
-                pixel_val = torch.tensor([i // 4, (i % 4) // 2, i % 2]).to(device)
+    for i in range(n_corners):
+        if orig_x.shape[-1] == 1:
+            pixel_val = int(i)
+        elif orig_x.shape[-1] == 3:
+            pixel_val = torch.tensor([i // 4, (i % 4) // 2, i % 2]).to(device)
 
-            for j in range(dims[1]):
-                for q in range(dims[2]):
-                    perturbed = torch.clone(orig_x)
-                    perturbed[:, j, q] = pixel_val
-                    pic_num = pic_size * i + j * dims[2] + q
-                    logits[:, pic_num, :] = forward(perturbed)
+        for j in range(dims[1]):
+            for q in range(dims[2]):
+                perturbed = torch.clone(orig_x)
+                perturbed[:, j, q] = pixel_val
+                pic_num = pic_size * i + j * dims[2] + q
+                logits[:, pic_num, :] = forward(perturbed)
 
     return logits
 
@@ -147,23 +148,24 @@ def npixels_perturbation(orig_x, dist, pert_size):
     output shape = orig_x shape
     creates a batch of images (given a batch), each differs pert_size pixels from the original.'''
 
-    with torch.no_grad():
-        ind2 = torch.rand(dist.shape) + 1e-12
-        ind2 = ind2.to(device)
-        ind2 = torch.log(ind2) * (1 / dist)
+    # TODO
+    # with torch.no_grad():
+    ind2 = torch.rand(dist.shape) + 1e-12
+    ind2 = ind2.to(device)
+    ind2 = torch.log(ind2) * (1 / dist)
 
-        batch_x = orig_x.clone()
-        # ind_prime shape: (batch_size, pert_size)
-        ind_prime = torch.topk(ind2, pert_size, 1).indices
+    batch_x = orig_x.clone()
+    # ind_prime shape: (batch_size, pert_size)
+    ind_prime = torch.topk(ind2, pert_size, 1).indices
 
-        p11, p12, d1 = flat2square(ind_prime, orig_x.shape[1:])
-        d1 = d1.unsqueeze(2).to(device)
+    p11, p12, d1 = flat2square(ind_prime, orig_x.shape[1:])
+    d1 = d1.unsqueeze(2).to(device)
 
-        counter = torch.arange(0, orig_x.shape[0])
+    counter = torch.arange(0, orig_x.shape[0])
 
-        # TODO: are p11, p12 arrays? does the line below work?
-        for i in range(orig_x.shape[0]):
-            batch_x[i, p11[i], p12[i]] = d1[i].float()
+    # TODO: are p11, p12 arrays? does the line below work?
+    for i in range(orig_x.shape[0]):
+        batch_x[i, p11[i], p12[i]] = d1[i].float()
 
     return batch_x
 
