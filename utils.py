@@ -27,9 +27,11 @@ def dataset_loader(dataset, batch_size=512, num_workers=8):
     elif dataset == 'CIFAR10':
 
         transform_train = transforms.Compose([
-            transforms.RandomCrop(32, padding=4),
+            # transforms.RandomCrop(32, padding=4),
             # transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
+            transforms.Resize(256),
+            transforms.CenterCrop(224),
             torchvision.transforms.RandomHorizontalFlip(p=0.5),
             torchvision.transforms.RandomVerticalFlip(p=0.5)
             # transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
@@ -37,6 +39,8 @@ def dataset_loader(dataset, batch_size=512, num_workers=8):
 
         transform_test = transforms.Compose([
             transforms.ToTensor(),
+            transforms.Resize(256),
+            transforms.CenterCrop(224),
             # transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
         ])
 
