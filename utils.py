@@ -80,6 +80,8 @@ def dataset_loader(dataset, batch_size=512, num_workers=8):
 def net_loader(net_arch, channels=1, dataset='MNIST'):
     if net_arch == 'Conv2Net':
         return models.Conv2Net(channels, dataset)
+    elif net_arch == 'AlexNet':
+        return models.AlexNet(num_classes=10)
     elif net_arch == 'ResNet18':
         return torch_models.resnet18(num_classes=10)
     elif net_arch == 'ResNet50':
