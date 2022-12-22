@@ -87,7 +87,7 @@ def net_loader(net_arch, channels=1, dataset='MNIST'):
     elif net_arch == 'DenseNet':
         return torch.hub.load('pytorch/vision:v0.10.0', 'densenet121', pretrained=False)
     elif net_arch == 'AlexNet':
-        return torch.hub.load('pytorch/vision:v0.10.0', 'alexnet', pretrained=False)
+        return models.densenet121()
         # return models.AlexNet(num_classes=10)
     elif net_arch == 'ResNet18':
         return torch_models.resnet18(num_classes=10)
