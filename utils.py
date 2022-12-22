@@ -30,8 +30,8 @@ def dataset_loader(dataset, batch_size=512, num_workers=8):
             # transforms.RandomCrop(32, padding=4),
             # transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
-            transforms.Resize(256),
-            transforms.CenterCrop(224),
+            # transforms.Resize(256),
+            # transforms.CenterCrop(224),
             torchvision.transforms.RandomHorizontalFlip(p=0.5),
             torchvision.transforms.RandomVerticalFlip(p=0.5)
             # transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
@@ -39,8 +39,8 @@ def dataset_loader(dataset, batch_size=512, num_workers=8):
 
         transform_test = transforms.Compose([
             transforms.ToTensor(),
-            transforms.Resize(256),
-            transforms.CenterCrop(224),
+            # transforms.Resize(256),
+            # transforms.CenterCrop(224),
             # transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
         ])
 
@@ -84,6 +84,8 @@ def dataset_loader(dataset, batch_size=512, num_workers=8):
 def net_loader(net_arch, channels=1, dataset='MNIST'):
     if net_arch == 'Conv2Net':
         return models.Conv2Net(channels, dataset)
+    elif net_arch == 'DenseNet':
+        return torch.hub.load('pytorch/vision:v0.10.0', 'densenet121', pretrained=False)
     elif net_arch == 'AlexNet':
         return torch.hub.load('pytorch/vision:v0.10.0', 'alexnet', pretrained=False)
         # return models.AlexNet(num_classes=10)
